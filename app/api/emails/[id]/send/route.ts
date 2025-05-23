@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { createDb } from "@/lib/db"
 import { emails } from "@/lib/schema"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
+import { getUserId } from "@/lib/apiKey"
+
+export const runtime = "edge"
 
 interface SendEmailRequest {
   to: string
@@ -11,36 +13,57 @@ interface SendEmailRequest {
   from: string
 }
 
+interface BrevoApiResponse {
+  messageId: string
+}
+
+interface BrevoApiError {
+  error?: string
+  message?: string
+  code?: string
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const session = await auth()
-    if (!session) {
-      return NextResponse.json({ error: "未授权" }, { status: 401 })
-    }
+  const userId = await getUserId()
+  
+  if (!userId) {
+    return NextResponse.json({ error: "未授权" }, { status: 401 })
+  }
 
+  try {
     const db = createDb()
     const { id } = await params
     
     // 验证用户拥有该邮箱
-    const email = await db
-      .select()
-      .from(emails)
-      .where(eq(emails.id, id))
-      .get()
+    const email = await db.query.emails.findFirst({
+      where: and(
+        eq(emails.id, id),
+        eq(emails.userId, userId)
+      )
+    })
 
-    if (!email || email.userId !== session.user.id) {
-      return NextResponse.json({ error: "邮箱不存在" }, { status: 404 })
+    if (!email) {
+      return NextResponse.json({ error: "邮箱不存在或无权限" }, { status: 404 })
     }
 
     const body = await request.json() as SendEmailRequest
     const { to, subject, content, from } = body
 
-    if (!to || !subject || !content) {
+    if (!to || !subject || !content || !from) {
       return NextResponse.json(
         { error: "缺少必填字段" },
+        { status: 400 }
+      )
+    }
+
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(to)) {
+      return NextResponse.json(
+        { error: "收件人邮箱格式不正确" },
         { status: 400 }
       )
     }
@@ -80,15 +103,15 @@ export async function POST(
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      console.error("Brevo API 错误:", error)
+      const errorData = await response.json() as BrevoApiError
+      console.error("Brevo API 错误:", errorData)
       return NextResponse.json(
-        { error: "发送邮件失败" },
+        { error: errorData.message || errorData.error || "发送邮件失败" },
         { status: 500 }
       )
     }
 
-    const result = await response.json()
+    const result = await response.json() as BrevoApiResponse
     
     return NextResponse.json({
       success: true,
