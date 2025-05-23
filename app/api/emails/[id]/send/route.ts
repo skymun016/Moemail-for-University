@@ -100,7 +100,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      messageId: result.id || "unknown",
+      messageId: (result as any)?.id || "unknown",
     })
 
   } catch (error) {
