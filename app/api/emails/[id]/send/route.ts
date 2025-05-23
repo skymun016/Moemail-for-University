@@ -33,7 +33,7 @@ async function sendEmailViaSMTP(config: any, emailData: any) {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 验证用户身份
@@ -43,7 +43,7 @@ export async function POST(
     }
 
     // 获取邮箱ID
-    const emailId = params.id
+    const { id: emailId } = await params
 
     // 获取表单数据
     const formData = await req.formData()
