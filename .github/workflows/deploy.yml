@@ -48,6 +48,7 @@ jobs:
           AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
           AUTH_GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
         run: pnpm dlx tsx scripts/deploy/index.ts
 
       # Clean up
