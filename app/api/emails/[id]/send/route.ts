@@ -24,7 +24,7 @@ export async function POST(
       .where(eq(emails.id, id))
       .get()
 
-    if (!email || email.user_id !== session.user.id) {
+    if (!email || email.userId !== session.user.id) {
       return NextResponse.json({ error: "邮箱不存在" }, { status: 404 })
     }
 
