@@ -4,6 +4,7 @@ import { useState } from "react"
 import { EmailList } from "./email-list"
 import { MessageList } from "./message-list"
 import { MessageView } from "./message-view"
+import { ComposeEmail } from "./compose-email"
 import { cn } from "@/lib/utils"
 import { useCopy } from "@/hooks/use-copy"
 import { Copy } from "lucide-react"
@@ -16,6 +17,7 @@ interface Email {
 export function ThreeColumnLayout() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
+  const [isComposing, setIsComposing] = useState(false)
   const { copyToClipboard } = useCopy()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
@@ -24,6 +26,7 @@ export function ThreeColumnLayout() {
 
   // 移动端视图逻辑
   const getMobileView = () => {
+    if (isComposing) return "compose"
     if (selectedMessageId) return "message"
     if (selectedEmail) return "emails"
     return "list"
@@ -33,6 +36,15 @@ export function ThreeColumnLayout() {
 
   const copyEmailAddress = () => {
     copyToClipboard(selectedEmail?.address || "")
+  }
+
+  const handleComposeClick = () => {
+    setIsComposing(true)
+    setSelectedMessageId(null)
+  }
+
+  const handleComposeClose = () => {
+    setIsComposing(false)
   }
 
   return (
@@ -48,6 +60,7 @@ export function ThreeColumnLayout() {
               onEmailSelect={(email) => {
                 setSelectedEmail(email)
                 setSelectedMessageId(null)
+                setIsComposing(false)
               }}
               selectedEmailId={selectedEmail?.id}
             />
@@ -73,8 +86,12 @@ export function ThreeColumnLayout() {
             <div className="flex-1 overflow-auto">
               <MessageList
                 email={selectedEmail}
-                onMessageSelect={setSelectedMessageId}
+                onMessageSelect={(messageId) => {
+                  setSelectedMessageId(messageId)
+                  setIsComposing(false)
+                }}
                 selectedMessageId={selectedMessageId}
+                onComposeClick={handleComposeClick}
               />
             </div>
           )}
@@ -83,10 +100,18 @@ export function ThreeColumnLayout() {
         <div className={cn("col-span-5", columnClass)}>
           <div className={headerClass}>
             <h2 className={titleClass}>
-              {selectedMessageId ? "邮件内容" : "选择邮件查看详情"}
+              {isComposing ? "撰写邮件" : selectedMessageId ? "邮件内容" : "选择邮件查看详情"}
             </h2>
           </div>
-          {selectedEmail && selectedMessageId && (
+          {selectedEmail && isComposing ? (
+            <div className="flex-1 overflow-auto">
+              <ComposeEmail
+                emailId={selectedEmail.id}
+                emailAddress={selectedEmail.address}
+                onClose={handleComposeClose}
+              />
+            </div>
+          ) : selectedEmail && selectedMessageId ? (
             <div className="flex-1 overflow-auto">
               <MessageView
                 emailId={selectedEmail.id}
@@ -94,7 +119,7 @@ export function ThreeColumnLayout() {
                 onClose={() => setSelectedMessageId(null)}
               />
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -110,6 +135,7 @@ export function ThreeColumnLayout() {
                 <EmailList
                   onEmailSelect={(email) => {
                     setSelectedEmail(email)
+                    setIsComposing(false)
                   }}
                   selectedEmailId={selectedEmail?.id}
                 />
@@ -140,6 +166,28 @@ export function ThreeColumnLayout() {
                   email={selectedEmail}
                   onMessageSelect={setSelectedMessageId}
                   selectedMessageId={selectedMessageId}
+                  onComposeClick={handleComposeClick}
+                />
+              </div>
+            </div>
+          )}
+
+          {mobileView === "compose" && selectedEmail && (
+            <div className="h-full flex flex-col">
+              <div className={headerClass}>
+                <button
+                  onClick={() => setIsComposing(false)}
+                  className="text-sm text-primary"
+                >
+                  ← 返回消息列表
+                </button>
+                <span className="text-sm font-medium">撰写邮件</span>
+              </div>
+              <div className="flex-1 overflow-auto">
+                <ComposeEmail
+                  emailId={selectedEmail.id}
+                  emailAddress={selectedEmail.address}
+                  onClose={() => setIsComposing(false)}
                 />
               </div>
             </div>

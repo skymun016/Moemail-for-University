@@ -28,10 +28,10 @@
 #### 用户端
 - **邮件查询**：可以在邮件列表中输入关键词（发件人、邮件内容、邮件主题）自动检索对应的邮件
   ![image](https://github.com/user-attachments/assets/7ead0f40-9aaa-456b-943e-bf9fbd637c05)
-
+- **发送邮件**：支持通过 SMTP 服务器发送邮件，包含附件上传功能（最大 1MB）
 
 ### 未来计划
-- [ ] 接入SMTP Server新增发件功能
+- [x] 接入SMTP Server新增发件功能
 - [ ] 接入Linux Do Connect
 - [ ] 更多的功能For Admin+Users
 
@@ -45,6 +45,15 @@
 ## 部署教程
 - 与Moemail一致，请前往 [beilunyang/moemail页面](https://github.com/beilunyang/moemail) 进行查看
 - 如已部署过Moemail，可直接下载源码覆盖部署
+
+### SMTP 配置（发件功能）
+如需启用发件功能，需要在 GitHub Actions Secrets 中配置以下环境变量：
+- `SMTP_SERVER`: SMTP 服务器地址（例如：smtp.gmail.com）
+- `SMTP_PORT`: SMTP 服务器端口（例如：587）
+- `SMTP_LOGIN`: SMTP 登录用户名
+- `SMTP_PASSWORD`: SMTP 登录密码
+
+注意：发件功能需要配置有效的 SMTP 服务器，否则发送邮件时会提示错误。
 
 ## 许可证
 

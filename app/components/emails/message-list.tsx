@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import {Mail, Calendar, RefreshCw, Trash2, Search} from "lucide-react"
+import {Mail, Calendar, RefreshCw, Trash2, Search, Send} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useThrottle } from "@/hooks/use-throttle"
@@ -33,6 +33,7 @@ interface MessageListProps {
   }
   onMessageSelect: (messageId: string | null) => void
   selectedMessageId?: string | null
+  onComposeClick?: () => void
 }
 
 interface MessageResponse {
@@ -41,7 +42,7 @@ interface MessageResponse {
   total: number
 }
 
-export function MessageList({ email, onMessageSelect, selectedMessageId }: MessageListProps) {
+export function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick }: MessageListProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -214,6 +215,16 @@ export function MessageList({ email, onMessageSelect, selectedMessageId }: Messa
           className={cn("h-8 w-8 flex-shrink-0", refreshing && "animate-spin")}
         >
           <RefreshCw className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onComposeClick}
+          className="h-8 w-8 flex-shrink-0"
+          title="发送邮件"
+        >
+          <Send className="h-4 w-4" />
         </Button>
         
         <div className="relative flex-1">

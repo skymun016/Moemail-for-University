@@ -35,6 +35,9 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install nodemailer
+        run: pnpm add nodemailer @types/nodemailer
+
       - name: Run deploy script
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -48,6 +51,10 @@ jobs:
           AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
           AUTH_GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_LOGIN: ${{ secrets.SMTP_LOGIN }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: pnpm dlx tsx scripts/deploy/index.ts
 
       # Clean up
