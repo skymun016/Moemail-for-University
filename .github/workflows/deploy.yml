@@ -33,10 +33,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install nodemailer
-        run: pnpm add nodemailer @types/nodemailer
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run deploy script
         env:
