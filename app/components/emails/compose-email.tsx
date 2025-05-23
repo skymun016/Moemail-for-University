@@ -104,7 +104,7 @@ export function ComposeEmail({ emailId, emailAddress, onClose }: ComposeEmailPro
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "发送失败")
+        throw new Error((data as any)?.error || "发送失败")
       }
 
       toast({
