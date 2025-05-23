@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { z } from "zod"
 
 // 简单的邮件发送函数（使用 SMTP over HTTP API 或者其他服务）
 async function sendEmailViaSMTP(config: any, emailData: any) {
