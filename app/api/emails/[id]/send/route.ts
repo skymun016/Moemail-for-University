@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { z } from "zod"
 
-// 验证环境变量
-const smtpConfig = z.object({
-  SMTP_SERVER: z.string().min(1),
-  SMTP_PORT: z.string().transform(Number),
-  SMTP_LOGIN: z.string().min(1),
-  SMTP_PASSWORD: z.string().min(1),
-})
-
 // 简单的邮件发送函数（使用 SMTP over HTTP API 或者其他服务）
 async function sendEmailViaSMTP(config: any, emailData: any) {
   // 这里我们可以使用类似 EmailJS、SendGrid、或者 Resend 等服务
