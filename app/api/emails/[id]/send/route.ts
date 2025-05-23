@@ -3,6 +3,7 @@ import { createDb } from "@/lib/db"
 import { emails } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
 import { getUserId } from "@/lib/apiKey"
+import { getRequestContext } from "@cloudflare/next-on-pages"
 
 export const runtime = "edge"
 
@@ -68,12 +69,13 @@ export async function POST(
       )
     }
 
-    // 从环境变量获取 Brevo API 密钥
-    const apiKey = process.env.BREVO_API_KEY
+    // 从 Cloudflare 环境变量获取 Brevo API 密钥
+    const env = getRequestContext().env
+    const apiKey = env.BREVO_API_KEY
     if (!apiKey) {
       console.error("未配置 BREVO_API_KEY")
       return NextResponse.json(
-        { error: "邮件服务配置错误" },
+        { error: "邮件服务配置错误，请检查 BREVO_API_KEY 环境变量" },
         { status: 500 }
       )
     }
