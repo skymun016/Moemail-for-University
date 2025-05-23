@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import nodemailer from "nodemailer"
 import { z } from "zod"
 
 // 验证环境变量
@@ -10,6 +9,36 @@ const smtpConfig = z.object({
   SMTP_LOGIN: z.string().min(1),
   SMTP_PASSWORD: z.string().min(1),
 })
+
+// 简单的邮件发送函数（使用 SMTP over HTTP API 或者其他服务）
+async function sendEmailViaSMTP(config: any, emailData: any) {
+  // 这里我们可以使用类似 EmailJS、SendGrid、或者 Resend 等服务
+  // 为了演示，我先创建一个基本的 SMTP 实现
+  
+  // 注意：在实际部署中，你可能需要使用支持 Edge Runtime 的邮件服务
+  // 比如 Resend、SendGrid、或者 EmailJS
+  
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: emailData.from,
+      to: [emailData.to],
+      subject: emailData.subject,
+      html: emailData.content.replace(/\n/g, "<br>"),
+      text: emailData.content,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`邮件发送失败: ${response.statusText}`)
+  }
+
+  return await response.json()
+}
 
 export async function POST(
   req: NextRequest,
@@ -22,22 +51,8 @@ export async function POST(
       return NextResponse.json({ error: "未授权" }, { status: 401 })
     }
 
-    // 验证 SMTP 配置
-    let config
-    try {
-      config = smtpConfig.parse({
-        SMTP_SERVER: process.env.SMTP_SERVER,
-        SMTP_PORT: process.env.SMTP_PORT,
-        SMTP_LOGIN: process.env.SMTP_LOGIN,
-        SMTP_PASSWORD: process.env.SMTP_PASSWORD,
-      })
-    } catch (error) {
-      console.error("SMTP configuration error:", error)
-      return NextResponse.json(
-        { error: "SMTP 服务器未配置。请在环境变量中设置 SMTP_SERVER、SMTP_PORT、SMTP_LOGIN 和 SMTP_PASSWORD。" },
-        { status: 500 }
-      )
-    }
+    // 获取邮箱ID
+    const emailId = params.id
 
     // 获取表单数据
     const formData = await req.formData()
@@ -54,54 +69,47 @@ export async function POST(
       )
     }
 
-    // 验证发件人邮箱是否属于当前用户
-    // TODO: 这里应该查询数据库验证邮箱所有权
-    // 暂时简化处理，假设用户有权限使用该邮箱
-
-    // 创建 SMTP 传输器
-    const transporter = nodemailer.createTransporter({
-      host: config.SMTP_SERVER,
-      port: config.SMTP_PORT,
-      secure: config.SMTP_PORT === 465, // true for 465, false for other ports
-      auth: {
-        user: config.SMTP_LOGIN,
-        pass: config.SMTP_PASSWORD,
-      },
-    })
-
-    // 处理附件
-    const attachments = []
-    const attachmentFiles = formData.getAll("attachments") as File[]
-    
-    for (const file of attachmentFiles) {
-      // 检查文件大小（1MB 限制）
-      if (file.size > 1024 * 1024) {
-        return NextResponse.json(
-          { error: `文件 ${file.name} 超过 1MB 限制` },
-          { status: 400 }
-        )
-      }
-
-      const buffer = Buffer.from(await file.arrayBuffer())
-      attachments.push({
-        filename: file.name,
-        content: buffer,
-      })
+    // 检查是否配置了邮件服务
+    if (!process.env.RESEND_API_KEY && !process.env.SMTP_SERVER) {
+      return NextResponse.json(
+        { error: "邮件服务未配置。请配置 RESEND_API_KEY 或 SMTP 相关环境变量。" },
+        { status: 500 }
+      )
     }
 
-    // 发送邮件
-    const info = await transporter.sendMail({
-      from: `"${from.split("@")[0]}" <${from}>`,
-      to,
-      subject,
-      text: content,
-      html: content.replace(/\n/g, "<br>"), // 简单的换行转换
-      attachments,
-    })
+    // TODO: 验证发件人邮箱是否属于当前用户
+    console.log(`发送邮件从邮箱ID: ${emailId}`)
+
+    // 处理附件（暂时不支持，因为需要更复杂的实现）
+    const attachmentFiles = formData.getAll("attachments") as File[]
+    if (attachmentFiles.length > 0) {
+      return NextResponse.json(
+        { error: "当前版本暂不支持附件，功能开发中" },
+        { status: 400 }
+      )
+    }
+
+    let result
+    
+    // 优先使用 Resend（支持 Edge Runtime）
+    if (process.env.RESEND_API_KEY) {
+      result = await sendEmailViaSMTP({}, {
+        from,
+        to,
+        subject,
+        content,
+      })
+    } else {
+      // 如果没有配置 Resend，返回错误提示
+      return NextResponse.json(
+        { error: "请配置 RESEND_API_KEY 环境变量以使用邮件发送功能" },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      messageId: info.messageId,
+      messageId: result.id || "unknown",
     })
 
   } catch (error) {

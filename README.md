@@ -28,7 +28,7 @@
 #### 用户端
 - **邮件查询**：可以在邮件列表中输入关键词（发件人、邮件内容、邮件主题）自动检索对应的邮件
   ![image](https://github.com/user-attachments/assets/7ead0f40-9aaa-456b-943e-bf9fbd637c05)
-- **发送邮件**：支持通过 SMTP 服务器发送邮件，包含附件上传功能（最大 1MB）
+- **发送邮件**：支持通过 Resend 邮件服务发送邮件（附件功能开发中）
 
 ### 未来计划
 - [x] 接入SMTP Server新增发件功能
@@ -47,13 +47,20 @@
 - 如已部署过Moemail，可直接下载源码覆盖部署
 
 ### SMTP 配置（发件功能）
-如需启用发件功能，需要在 GitHub Actions Secrets 中配置以下环境变量：
-- `SMTP_SERVER`: SMTP 服务器地址（例如：smtp.gmail.com）
-- `SMTP_PORT`: SMTP 服务器端口（例如：587）
-- `SMTP_LOGIN`: SMTP 登录用户名
-- `SMTP_PASSWORD`: SMTP 登录密码
+如需启用发件功能，推荐使用 Resend 邮件服务（支持 Cloudflare Edge Runtime）：
 
-注意：发件功能需要配置有效的 SMTP 服务器，否则发送邮件时会提示错误。
+1. 前往 [Resend](https://resend.com) 注册账户
+2. 获取 API Key
+3. 在 GitHub Actions Secrets 中配置以下环境变量：
+   - `RESEND_API_KEY`: 你的 Resend API 密钥
+
+**注意事项：**
+- Resend 免费账户每月可发送 3,000 封邮件
+- 发件功能需要配置有效的邮件服务，否则发送邮件时会提示错误
+- 当前版本暂不支持附件功能（开发中）
+
+**其他邮件服务：**
+如果你希望使用其他邮件服务（如 SendGrid），可以修改 `/app/api/emails/[id]/send/route.ts` 文件中的 `sendEmailViaSMTP` 函数。
 
 ## 许可证
 

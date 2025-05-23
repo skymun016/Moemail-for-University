@@ -89,17 +89,12 @@ export function ComposeEmail({ emailId, emailAddress, onClose }: ComposeEmailPro
     setSending(true)
 
     try {
-      // 创建 FormData 以支持文件上传
+      // 创建 FormData，暂时不发送附件
       const formData = new FormData()
       formData.append("to", to)
       formData.append("subject", subject)
       formData.append("content", content)
       formData.append("from", emailAddress)
-      
-      // 添加附件
-      attachments.forEach(({ file }) => {
-        formData.append("attachments", file)
-      })
 
       const response = await fetch(`/api/emails/${emailId}/send`, {
         method: "POST",
@@ -191,6 +186,8 @@ export function ComposeEmail({ emailId, emailAddress, onClose }: ComposeEmailPro
             />
           </div>
 
+          {/* 附件功能暂时隐藏 */}
+          {false && (
           <div>
             <Label className="text-sm">附件（最大 1MB）</Label>
             <div className="mt-2 space-y-2">
@@ -239,6 +236,7 @@ export function ComposeEmail({ emailId, emailAddress, onClose }: ComposeEmailPro
               </label>
             </div>
           </div>
+          )}
         </div>
       </div>
 
