@@ -4,6 +4,7 @@ import { useState } from "react"
 import { EmailList } from "./email-list"
 import { MessageList } from "./message-list"
 import { MessageView } from "./message-view"
+import { ComposeMessage } from "./compose-message"
 import { cn } from "@/lib/utils"
 import { useCopy } from "@/hooks/use-copy"
 import { Copy } from "lucide-react"
@@ -16,6 +17,7 @@ interface Email {
 export function ThreeColumnLayout() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
+  const [isComposing, setIsComposing] = useState(false)
   const { copyToClipboard } = useCopy()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
@@ -24,6 +26,7 @@ export function ThreeColumnLayout() {
 
   // 移动端视图逻辑
   const getMobileView = () => {
+    if (isComposing) return "compose"
     if (selectedMessageId) return "message"
     if (selectedEmail) return "emails"
     return "list"
@@ -73,8 +76,15 @@ export function ThreeColumnLayout() {
             <div className="flex-1 overflow-auto">
               <MessageList
                 email={selectedEmail}
-                onMessageSelect={setSelectedMessageId}
+                onMessageSelect={(messageId) => {
+                  setSelectedMessageId(messageId)
+                  setIsComposing(false)
+                }}
                 selectedMessageId={selectedMessageId}
+                onComposeClick={() => {
+                  setIsComposing(true)
+                  setSelectedMessageId(null)
+                }}
               />
             </div>
           )}
@@ -83,10 +93,19 @@ export function ThreeColumnLayout() {
         <div className={cn("col-span-5", columnClass)}>
           <div className={headerClass}>
             <h2 className={titleClass}>
-              {selectedMessageId ? "邮件内容" : "选择邮件查看详情"}
+              {isComposing ? "撰写邮件" : selectedMessageId ? "邮件内容" : "选择邮件查看详情"}
             </h2>
           </div>
-          {selectedEmail && selectedMessageId && (
+          {selectedEmail && isComposing && (
+            <div className="flex-1 overflow-auto">
+              <ComposeMessage
+                emailId={selectedEmail.id}
+                fromEmail={selectedEmail.address}
+                onClose={() => setIsComposing(false)}
+              />
+            </div>
+          )}
+          {selectedEmail && selectedMessageId && !isComposing && (
             <div className="flex-1 overflow-auto">
               <MessageView
                 emailId={selectedEmail.id}
@@ -123,6 +142,7 @@ export function ThreeColumnLayout() {
                 <button
                   onClick={() => {
                     setSelectedEmail(null)
+                    setIsComposing(false)
                   }}
                   className="text-sm text-primary shrink-0"
                 >
@@ -138,8 +158,15 @@ export function ThreeColumnLayout() {
               <div className="flex-1 overflow-auto">
                 <MessageList
                   email={selectedEmail}
-                  onMessageSelect={setSelectedMessageId}
+                  onMessageSelect={(messageId) => {
+                    setSelectedMessageId(messageId)
+                    setIsComposing(false)
+                  }}
                   selectedMessageId={selectedMessageId}
+                  onComposeClick={() => {
+                    setIsComposing(true)
+                    setSelectedMessageId(null)
+                  }}
                 />
               </div>
             </div>
@@ -161,6 +188,18 @@ export function ThreeColumnLayout() {
                   emailId={selectedEmail.id}
                   messageId={selectedMessageId}
                   onClose={() => setSelectedMessageId(null)}
+                />
+              </div>
+            </div>
+          )}
+
+          {mobileView === "compose" && selectedEmail && (
+            <div className="h-full flex flex-col">
+              <div className="flex-1 overflow-auto">
+                <ComposeMessage
+                  emailId={selectedEmail.id}
+                  fromEmail={selectedEmail.address}
+                  onClose={() => setIsComposing(false)}
                 />
               </div>
             </div>

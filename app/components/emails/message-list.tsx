@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import {Mail, Calendar, RefreshCw, Trash2, Search} from "lucide-react"
+import {Mail, Calendar, RefreshCw, Trash2, Search, PenSquare} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useThrottle } from "@/hooks/use-throttle"
@@ -33,6 +33,7 @@ interface MessageListProps {
   }
   onMessageSelect: (messageId: string | null) => void
   selectedMessageId?: string | null
+  onComposeClick?: () => void
 }
 
 interface MessageResponse {
@@ -41,7 +42,7 @@ interface MessageResponse {
   total: number
 }
 
-export function MessageList({ email, onMessageSelect, selectedMessageId }: MessageListProps) {
+export function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick }: MessageListProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -215,6 +216,17 @@ export function MessageList({ email, onMessageSelect, selectedMessageId }: Messa
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
+        
+        {onComposeClick && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onComposeClick}
+            className="h-8 w-8 flex-shrink-0"
+          >
+            <PenSquare className="h-4 w-4" />
+          </Button>
+        )}
         
         <div className="relative flex-1">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
