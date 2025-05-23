@@ -4,6 +4,13 @@ import { createDb } from "@/lib/db"
 import { emails } from "@/lib/schema"
 import { eq } from "drizzle-orm"
 
+interface SendEmailRequest {
+  to: string
+  subject: string
+  content: string
+  from: string
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -28,7 +35,7 @@ export async function POST(
       return NextResponse.json({ error: "邮箱不存在" }, { status: 404 })
     }
 
-    const body = await request.json()
+    const body = await request.json() as SendEmailRequest
     const { to, subject, content, from } = body
 
     if (!to || !subject || !content) {
