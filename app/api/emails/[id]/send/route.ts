@@ -4,7 +4,10 @@ import { emails } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
 import { getUserId } from "@/lib/apiKey"
 import { getRequestContext } from "@cloudflare/next-on-pages"
+<<<<<<< HEAD
 import { createSMTPClient } from "@/lib/smtp"
+=======
+>>>>>>> 67a6c97b0b42ca8ae43cfe8a008ec7ccbf9f7ef5
 
 export const runtime = "edge"
 
@@ -15,11 +18,19 @@ interface SendEmailRequest {
   from: string
 }
 
+<<<<<<< HEAD
 interface SMTPApiResponse {
   messageId: string
 }
 
 interface SMTPApiError {
+=======
+interface BrevoApiResponse {
+  messageId: string
+}
+
+interface BrevoApiError {
+>>>>>>> 67a6c97b0b42ca8ae43cfe8a008ec7ccbf9f7ef5
   error?: string
   message?: string
   code?: string
@@ -64,6 +75,7 @@ export async function POST(
     // 验证邮箱格式
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(to)) {
+<<<<<<< HEAD
       return NextResponse.json(
         { error: "收件人邮箱格式不正确" },
         { status: 400 }
@@ -81,6 +93,21 @@ export async function POST(
       console.error("未配置 SMTP 参数")
       return NextResponse.json(
         { error: "邮件服务配置错误，请检查 SMTP 环境变量" },
+=======
+      return NextResponse.json(
+        { error: "收件人邮箱格式不正确" },
+        { status: 400 }
+      )
+    }
+
+    // 从 Cloudflare 环境变量获取 Brevo API 密钥
+    const env = getRequestContext().env
+    const apiKey = env.BREVO_API_KEY
+    if (!apiKey) {
+      console.error("未配置 BREVO_API_KEY")
+      return NextResponse.json(
+        { error: "邮件服务配置错误，请检查 BREVO_API_KEY 环境变量" },
+>>>>>>> 67a6c97b0b42ca8ae43cfe8a008ec7ccbf9f7ef5
         { status: 500 }
       )
     }
@@ -93,6 +120,7 @@ export async function POST(
       password: smtpPassword
     })
 
+<<<<<<< HEAD
     const result = await smtpClient.sendEmail({
       from,
       to,
@@ -107,6 +135,18 @@ export async function POST(
         { status: 500 }
       )
     }
+=======
+    if (!response.ok) {
+      const errorData = await response.json() as BrevoApiError
+      console.error("Brevo API 错误:", errorData)
+      return NextResponse.json(
+        { error: errorData.message || errorData.error || "发送邮件失败" },
+        { status: 500 }
+      )
+    }
+
+    const result = await response.json() as BrevoApiResponse
+>>>>>>> 67a6c97b0b42ca8ae43cfe8a008ec7ccbf9f7ef5
     
     return NextResponse.json({
       success: true,

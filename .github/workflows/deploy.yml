@@ -48,10 +48,14 @@ jobs:
           AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
           AUTH_GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+<<<<<<< HEAD
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_LOGIN: ${{ secrets.SMTP_LOGIN }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+=======
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+>>>>>>> 67a6c97b0b42ca8ae43cfe8a008ec7ccbf9f7ef5
         run: pnpm dlx tsx scripts/deploy/index.ts
 
       # Clean up
