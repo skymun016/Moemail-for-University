@@ -60,7 +60,8 @@ export function ComposeMessage({ emailId, fromEmail, onClose }: ComposeMessagePr
         throw new Error(errorData.error || "发送失败")
       }
 
-      const result = await response.json() as ApiSuccessResponse
+      // 响应成功，不需要使用返回的数据
+      await response.json() as ApiSuccessResponse
 
       toast({
         title: "成功",
