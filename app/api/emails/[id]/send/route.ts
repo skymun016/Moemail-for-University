@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { emailId: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -15,12 +15,13 @@ export async function POST(
     }
 
     const db = createDb()
+    const { id } = await params
     
     // 验证用户拥有该邮箱
     const email = await db
       .select()
       .from(emails)
-      .where(eq(emails.id, params.emailId))
+      .where(eq(emails.id, id))
       .get()
 
     if (!email || email.user_id !== session.user.id) {
