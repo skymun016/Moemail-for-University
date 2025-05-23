@@ -5,6 +5,7 @@ declare global {
   interface CloudflareEnv {
     DB: D1Database;
     SITE_CONFIG: KVNamespace;
+    BREVO_API_KEY: string;
   }
 
   type Env = CloudflareEnv
