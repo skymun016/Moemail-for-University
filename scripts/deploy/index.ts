@@ -278,7 +278,7 @@ const pushPagesSecret = () => {
   console.log("🔐 Pushing environment secrets to Pages...");
 
   // 定义运行时所需的环境变量列表
-  const runtimeEnvVars = ['AUTH_GITHUB_ID', 'AUTH_GITHUB_SECRET', 'AUTH_SECRET'];
+  const runtimeEnvVars = ['AUTH_GITHUB_ID', 'AUTH_GITHUB_SECRET', 'AUTH_SECRET', 'SMTP_SERVER', 'SMTP_PORT', 'SMTP_LOGIN', 'SMTP_PASSWORD'];
 
   // 兼容老的部署方式，如果这些环境变量不存在，则说明是老的部署方式，跳过推送
   for (const varName of runtimeEnvVars) {

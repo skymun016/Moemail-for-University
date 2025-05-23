@@ -14,6 +14,15 @@ interface ComposeMessageProps {
   onClose: () => void
 }
 
+interface ApiErrorResponse {
+  error: string
+}
+
+interface ApiSuccessResponse {
+  success: boolean
+  messageId: string
+}
+
 export function ComposeMessage({ emailId, fromEmail, onClose }: ComposeMessageProps) {
   const [to, setTo] = useState("")
   const [subject, setSubject] = useState("")
@@ -47,9 +56,12 @@ export function ComposeMessage({ emailId, fromEmail, onClose }: ComposeMessagePr
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "发送失败")
+        const errorData = await response.json() as ApiErrorResponse
+        throw new Error(errorData.error || "发送失败")
       }
+
+      // 响应成功，不需要使用返回的数据
+      await response.json() as ApiSuccessResponse
 
       toast({
         title: "成功",

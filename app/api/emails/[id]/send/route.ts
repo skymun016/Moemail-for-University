@@ -3,6 +3,8 @@ import { createDb } from "@/lib/db"
 import { emails } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
 import { getUserId } from "@/lib/apiKey"
+import { getRequestContext } from "@cloudflare/next-on-pages"
+import { createSMTPClient } from "@/lib/smtp"
 
 export const runtime = "edge"
 
@@ -13,11 +15,11 @@ interface SendEmailRequest {
   from: string
 }
 
-interface BrevoApiResponse {
+interface SMTPApiResponse {
   messageId: string
 }
 
-interface BrevoApiError {
+interface SMTPApiError {
   error?: string
   message?: string
   code?: string
@@ -68,50 +70,43 @@ export async function POST(
       )
     }
 
-    // 从环境变量获取 Brevo API 密钥
-    const apiKey = process.env.BREVO_API_KEY
-    if (!apiKey) {
-      console.error("未配置 BREVO_API_KEY")
+    // 从 Cloudflare 环境变量获取 SMTP 配置
+    const env = getRequestContext().env
+    const smtpServer = env.SMTP_SERVER
+    const smtpPort = env.SMTP_PORT
+    const smtpLogin = env.SMTP_LOGIN
+    const smtpPassword = env.SMTP_PASSWORD
+
+    if (!smtpServer || !smtpPort || !smtpLogin || !smtpPassword) {
+      console.error("未配置 SMTP 参数")
       return NextResponse.json(
-        { error: "邮件服务配置错误" },
+        { error: "邮件服务配置错误，请检查 SMTP 环境变量" },
         { status: 500 }
       )
     }
 
-    // 调用 Brevo API 发送邮件
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": apiKey
-      },
-      body: JSON.stringify({
-        sender: {
-          email: from,
-          name: from.split("@")[0]
-        },
-        to: [
-          {
-            email: to,
-            name: to.split("@")[0]
-          }
-        ],
-        subject,
-        htmlContent: `<html><body>${content.replace(/\n/g, '<br>')}</body></html>`,
-        textContent: content
-      })
+    // 创建 SMTP 客户端并发送邮件
+    const smtpClient = createSMTPClient({
+      server: smtpServer,
+      port: parseInt(smtpPort),
+      login: smtpLogin,
+      password: smtpPassword
     })
 
-    if (!response.ok) {
-      const errorData = await response.json() as BrevoApiError
-      console.error("Brevo API 错误:", errorData)
+    const result = await smtpClient.sendEmail({
+      from,
+      to,
+      subject,
+      content
+    })
+
+    if (!result.success) {
+      console.error("SMTP 发送错误:", result.error)
       return NextResponse.json(
-        { error: errorData.message || errorData.error || "发送邮件失败" },
+        { error: result.error || "发送邮件失败" },
         { status: 500 }
       )
     }
-
-    const result = await response.json() as BrevoApiResponse
     
     return NextResponse.json({
       success: true,
