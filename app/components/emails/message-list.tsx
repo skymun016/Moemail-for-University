@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import {Mail, Calendar, RefreshCw, Trash2, Search, Send, TrashX} from "lucide-react"
+import {Mail, Calendar, RefreshCw, Trash2, Search, Send, Trash} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useThrottle } from "@/hooks/use-throttle"
@@ -279,7 +279,7 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
           className="h-8 w-8 flex-shrink-0"
           title="删除所有邮件"
         >
-          <TrashX className="h-4 w-4 text-destructive" />
+          <Trash className="h-4 w-4 text-destructive" />
         </Button>
 
         <div className="relative flex-1">

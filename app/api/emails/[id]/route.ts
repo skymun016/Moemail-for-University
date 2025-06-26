@@ -53,7 +53,7 @@ export async function PATCH(
   try {
     const db = createDb()
     const { id } = await params
-    const { action } = await request.json()
+    const body = await request.json() as { action: string }
 
     // 验证邮箱权限
     const email = await db.query.emails.findFirst({
@@ -71,7 +71,7 @@ export async function PATCH(
     }
 
     // 处理批量删除所有邮件
-    if (action === "deleteAllMessages") {
+    if (body.action === "deleteAllMessages") {
       const result = await db.delete(messages)
         .where(eq(messages.emailId, id))
         .returning({ id: messages.id })
