@@ -8,6 +8,7 @@ import { ComposeEmail } from "./compose-email"
 import { cn } from "@/lib/utils"
 import { useCopy } from "@/hooks/use-copy"
 import { Copy } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 interface Email {
   id: string
@@ -20,6 +21,7 @@ export function ThreeColumnLayout() {
   const [isComposing, setIsComposing] = useState(false)
   const messageListRef = useRef<any>(null)
   const { copyToClipboard } = useCopy()
+  const { toast } = useToast()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
   const headerClass = "p-2 border-b-2 border-primary/20 flex items-center justify-between shrink-0"
@@ -49,8 +51,23 @@ export function ThreeColumnLayout() {
   }
 
   const handleSentEmail = (sentData: { to: string; subject: string; content: string }) => {
+    toast({
+      title: "调试信息",
+      description: `handleSentEmail 被调用，收件人: ${sentData.to}`,
+    })
+
     if (messageListRef.current && messageListRef.current.addSentMessage) {
+      toast({
+        title: "调试信息",
+        description: "正在调用 addSentMessage",
+      })
       messageListRef.current.addSentMessage(sentData)
+    } else {
+      toast({
+        title: "调试错误",
+        description: "messageListRef.current 或 addSentMessage 不可用",
+        variant: "destructive"
+      })
     }
   }
 

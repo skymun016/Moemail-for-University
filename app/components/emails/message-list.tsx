@@ -67,6 +67,11 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
 
   // 添加发件消息到列表
   const addSentMessage = useCallback((sentData: { to: string; subject: string; content: string }) => {
+    toast({
+      title: "调试信息",
+      description: `addSentMessage 被调用，主题: ${sentData.subject}`,
+    })
+
     const sentMessage: Message = {
       id: `sent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       from_address: email.address,
@@ -76,13 +81,25 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
       type: 'sent'
     }
 
-    setMessages(prev => [sentMessage, ...prev])
+    toast({
+      title: "调试信息",
+      description: `正在添加发件消息到列表，ID: ${sentMessage.id}`,
+    })
+
+    setMessages(prev => {
+      const newMessages = [sentMessage, ...prev]
+      toast({
+        title: "调试信息",
+        description: `消息列表已更新，总数: ${newMessages.length}`,
+      })
+      return newMessages
+    })
     setTotal(prev => prev + 1)
 
     if (onSentEmail) {
       onSentEmail(sentMessage)
     }
-  }, [email.address, onSentEmail])
+  }, [email.address, onSentEmail, toast])
 
   // 暴露方法给父组件
   useImperativeHandle(ref, () => ({
