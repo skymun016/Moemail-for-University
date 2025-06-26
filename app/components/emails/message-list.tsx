@@ -211,7 +211,7 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
         return
       }
 
-      const result = await response.json()
+      const result = await response.json() as { success: boolean; deletedCount: number }
       setMessages([])
       setTotal(0)
       onMessageSelect(null)
