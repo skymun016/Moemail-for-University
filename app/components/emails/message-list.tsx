@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
 import {Mail, Calendar, RefreshCw, Trash2, Search, Send, Trash, Inbox, SendHorizontal} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -45,7 +45,7 @@ interface MessageResponse {
 }
 
 interface MessageListRef {
-  // 保留接口以兼容现有代码
+  refresh: () => void
 }
 
 export const MessageList = forwardRef<MessageListRef, MessageListProps>(function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick }, ref) {
@@ -64,9 +64,6 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
   const [deletingAll, setDeletingAll] = useState(false)
   const [messageType, setMessageType] = useState<'all' | 'received' | 'sent'>('all') // 邮件类型过滤
   const { toast } = useToast()
-
-  // 暴露方法给父组件（保留为了兼容性）
-  useImperativeHandle(ref, () => ({}), [])
 
   // 当 messages 改变时更新 ref
   useEffect(() => {
@@ -157,6 +154,11 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
     setRefreshing(true)
     await fetchMessages()
   }
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    refresh: handleRefresh
+  }), [handleRefresh])
 
   const handleScroll = useThrottle((e: React.UIEvent<HTMLDivElement>) => {
     if (loadingMore) return
