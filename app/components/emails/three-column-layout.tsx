@@ -47,7 +47,7 @@ export function ThreeColumnLayout() {
     setIsComposing(false)
   }
 
-  const handleSentEmail = (sentData: { to: string; subject: string; content: string }) => {
+  const handleSentEmail = () => {
     // 发件成功后，邮件列表会自动刷新并显示新的发件记录
     // 不需要在这里做任何处理，因为发件记录已经保存到数据库中
   }

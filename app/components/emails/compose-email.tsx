@@ -13,7 +13,7 @@ interface ComposeEmailProps {
   emailId: string
   emailAddress: string
   onClose?: () => void
-  onSentEmail?: (sentData: { to: string; subject: string; content: string }) => void
+  onSentEmail?: () => void
 }
 
 interface Attachment {
@@ -115,8 +115,7 @@ export function ComposeEmail({ emailId, emailAddress, onClose, onSentEmail }: Co
 
       // 通知父组件发件成功
       if (onSentEmail) {
-        const sentData = { to, subject, content }
-        onSentEmail(sentData)
+        onSentEmail()
       }
 
       // 清空表单

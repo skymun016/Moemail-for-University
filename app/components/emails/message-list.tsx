@@ -45,7 +45,7 @@ interface MessageResponse {
 }
 
 interface MessageListRef {
-  addSentMessage: (sentData: { to: string; subject: string; content: string }) => void
+  // 保留接口以兼容现有代码
 }
 
 export const MessageList = forwardRef<MessageListRef, MessageListProps>(function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick }, ref) {
@@ -65,10 +65,8 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
   const [messageType, setMessageType] = useState<'all' | 'received' | 'sent'>('all') // 邮件类型过滤
   const { toast } = useToast()
 
-  // 暴露方法给父组件（保留为了兼容性，但不再使用）
-  useImperativeHandle(ref, () => ({
-    addSentMessage: () => {}
-  }), [])
+  // 暴露方法给父组件（保留为了兼容性）
+  useImperativeHandle(ref, () => ({}), [])
 
   // 当 messages 改变时更新 ref
   useEffect(() => {
