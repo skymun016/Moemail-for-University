@@ -56,8 +56,10 @@ export function ThreeColumnLayout() {
       from_address: selectedEmail.address,
       to_address: sentData.to,
       subject: sentData.subject,
+      content: sentData.content,
+      html: null,
       received_at: Date.now(),
-      type: 'sent'
+      type: 'sent' as const
     }
 
     // 添加到发件消息列表
@@ -136,6 +138,7 @@ export function ThreeColumnLayout() {
                 emailId={selectedEmail.id}
                 messageId={selectedMessageId}
                 onClose={() => setSelectedMessageId(null)}
+                message={sentMessages.find(msg => msg.id === selectedMessageId)}
               />
             </div>
           ) : null}
@@ -230,6 +233,7 @@ export function ThreeColumnLayout() {
                   emailId={selectedEmail.id}
                   messageId={selectedMessageId}
                   onClose={() => setSelectedMessageId(null)}
+                  message={sentMessages.find(msg => msg.id === selectedMessageId)}
                 />
               </div>
             </div>
