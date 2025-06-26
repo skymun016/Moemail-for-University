@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
-import {Mail, Calendar, RefreshCw, Trash2, Search, Send, Trash} from "lucide-react"
+import {Mail, Calendar, RefreshCw, Trash2, Search, Send, Trash, Inbox, SendHorizontal} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useThrottle } from "@/hooks/use-throttle"
@@ -36,7 +36,6 @@ interface MessageListProps {
   onMessageSelect: (messageId: string | null) => void
   selectedMessageId?: string | null
   onComposeClick?: () => void
-  sentMessages?: Message[] // 接收发件消息列表
 }
 
 interface MessageResponse {
@@ -49,7 +48,7 @@ interface MessageListRef {
   addSentMessage: (sentData: { to: string; subject: string; content: string }) => void
 }
 
-export const MessageList = forwardRef<MessageListRef, MessageListProps>(function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick, sentMessages = [] }, ref) {
+export const MessageList = forwardRef<MessageListRef, MessageListProps>(function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick }, ref) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -63,6 +62,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([])
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
   const [deletingAll, setDeletingAll] = useState(false)
+  const [messageType, setMessageType] = useState<'all' | 'received' | 'sent'>('all') // 邮件类型过滤
   const { toast } = useToast()
 
   // 暴露方法给父组件（保留为了兼容性，但不再使用）
@@ -75,24 +75,29 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
     messagesRef.current = messages
   }, [messages])
 
-  // 合并收件和发件消息
-  const allMessages = [...sentMessages, ...messages].sort((a, b) => b.received_at - a.received_at)
+  // 消息已经包含收件和发件，按时间排序
+  const allMessages = messages.sort((a, b) => b.received_at - a.received_at)
 
-  // 当搜索条件变化时更新过滤后的消息列表
+  // 根据邮件类型过滤消息
+  const typeFilteredMessages = messageType === 'all'
+    ? allMessages
+    : allMessages.filter(message => message.type === messageType)
+
+  // 当搜索条件或邮件类型变化时更新过滤后的消息列表
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredMessages(allMessages)
+      setFilteredMessages(typeFilteredMessages)
       return
     }
 
     const query = searchQuery.toLowerCase()
-    const filtered = allMessages.filter(message =>
+    const filtered = typeFilteredMessages.filter(message =>
       message.subject.toLowerCase().includes(query) ||
       message.from_address.toLowerCase().includes(query) ||
       (message.to_address && message.to_address.toLowerCase().includes(query))
     )
     setFilteredMessages(filtered)
-  }, [searchQuery, allMessages])
+  }, [searchQuery, typeFilteredMessages, messageType])
 
   const fetchMessages = async (cursor?: string) => {
     try {
@@ -234,12 +239,13 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
 
       toast({
         title: "成功",
-        description: `已删除 ${result.deletedCount} 封邮件`
+        description: `已删除 ${result.deletedCount} 封收件`
       })
-    } catch {
+    } catch (error) {
+      console.error("Delete all messages error:", error)
       toast({
         title: "错误",
-        description: "删除所有邮件失败",
+        description: "删除所有收件失败",
         variant: "destructive"
       })
     } finally {
@@ -266,6 +272,39 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
   return (
   <>
     <div className="h-full flex flex-col">
+      {/* 邮件类型切换按钮 */}
+      <div className="p-2 border-b border-primary/10">
+        <div className="flex items-center gap-1">
+          <Button
+            variant={messageType === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMessageType('all')}
+            className="h-7 px-3 text-xs"
+          >
+            全部
+          </Button>
+          <Button
+            variant={messageType === 'received' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMessageType('received')}
+            className="h-7 px-3 text-xs"
+          >
+            <Inbox className="w-3 h-3 mr-1" />
+            收件箱
+          </Button>
+          <Button
+            variant={messageType === 'sent' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMessageType('sent')}
+            className="h-7 px-3 text-xs"
+          >
+            <SendHorizontal className="w-3 h-3 mr-1" />
+            发件箱
+          </Button>
+        </div>
+      </div>
+
+      {/* 功能按钮栏 */}
       <div className="p-2 flex items-center border-b border-primary/20 gap-2">
         <Button
           variant="ghost"
@@ -291,9 +330,9 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
           variant="ghost"
           size="icon"
           onClick={() => setShowDeleteAllDialog(true)}
-          disabled={total === 0 || deletingAll}
+          disabled={typeFilteredMessages.length === 0 || deletingAll || messageType === 'sent'}
           className="h-8 w-8 flex-shrink-0"
-          title="删除所有邮件"
+          title={messageType === 'sent' ? "发件记录不可批量删除" : "删除所有收件"}
         >
           <Trash className="h-4 w-4 text-destructive" />
         </Button>
@@ -310,10 +349,14 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
         
         <span className="text-xs text-gray-500 flex-shrink-0">
           {filteredMessages.length > 0
-            ? searchQuery
-              ? `${filteredMessages.length}/${total + sentMessages.length} 封邮件`
-              : `${total + sentMessages.length} 封邮件`
-            : "暂无邮件"}
+            ? searchQuery || messageType !== 'all'
+              ? `${filteredMessages.length}/${typeFilteredMessages.length} 封邮件`
+              : `${total} 封邮件`
+            : messageType === 'received'
+              ? "暂无收件"
+              : messageType === 'sent'
+                ? "暂无发件"
+                : "暂无邮件"}
         </span>
       </div>
 
@@ -402,9 +445,9 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
     <AlertDialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>确认删除所有邮件</AlertDialogTitle>
+          <AlertDialogTitle>确认删除所有收件</AlertDialogTitle>
           <AlertDialogDescription>
-            确定要删除该邮箱中的所有 {total} 封邮件吗？此操作不可撤销。
+            确定要删除该邮箱中的所有 {total} 封收件吗？此操作不可撤销。发件记录不会被删除。
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

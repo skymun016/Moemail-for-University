@@ -54,9 +54,11 @@ export const messages = sqliteTable("message", {
     .notNull()
     .references(() => emails.id, { onDelete: "cascade" }),
   fromAddress: text("from_address").notNull(),
+  toAddress: text("to_address"), // 发件时的收件人地址
   subject: text("subject").notNull(),
   content: text("content").notNull(),
   html: text("html"),
+  type: text("type").notNull().default("received"), // "received" 或 "sent"
   receivedAt: integer("received_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),

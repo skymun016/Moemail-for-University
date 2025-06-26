@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { createDb } from "@/lib/db"
+import { messages, emails } from "@/lib/schema"
+import { eq, and } from "drizzle-orm"
 
 export const runtime = 'edge'
 
@@ -70,8 +73,23 @@ export async function POST(
       )
     }
 
-    // TODO: 验证发件人邮箱是否属于当前用户
-    console.log(`发送邮件从邮箱ID: ${emailId}`)
+    // 验证发件人邮箱是否属于当前用户
+    const db = createDb()
+    const email = await db.query.emails.findFirst({
+      where: and(
+        eq(emails.id, emailId),
+        eq(emails.userId, session.user.id!)
+      )
+    })
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "邮箱不存在或无权限使用" },
+        { status: 403 }
+      )
+    }
+
+    console.log(`发送邮件从邮箱: ${email.address}`)
 
     // 处理附件（暂时不支持，因为需要更复杂的实现）
     const attachmentFiles = formData.getAll("attachments") as File[]
@@ -100,9 +118,22 @@ export async function POST(
       )
     }
 
+    // 保存发件记录到数据库
+    const sentMessage = await db.insert(messages).values({
+      emailId: emailId,
+      fromAddress: from,
+      toAddress: to,
+      subject: subject,
+      content: content,
+      html: null,
+      type: "sent",
+      receivedAt: new Date()
+    }).returning()
+
     return NextResponse.json({
       success: true,
       messageId: (result as any)?.id || "unknown",
+      sentMessageId: sentMessage[0].id
     })
 
   } catch (error) {

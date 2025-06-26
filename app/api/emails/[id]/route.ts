@@ -165,11 +165,13 @@ export async function GET(
       : null
     const messageList = hasMore ? results.slice(0, PAGE_SIZE) : results
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       messages: messageList.map(msg => ({
         id: msg.id,
         from_address: msg.fromAddress,
+        to_address: msg.toAddress,
         subject: msg.subject,
+        type: msg.type,
         received_at: msg.receivedAt.getTime()
       })),
       nextCursor,

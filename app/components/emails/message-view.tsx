@@ -21,30 +21,18 @@ interface MessageViewProps {
   emailId: string
   messageId: string
   onClose: () => void
-  message?: Message // 可选的消息数据，用于发件记录
 }
 
 type ViewMode = "html" | "text"
 
-export function MessageView({ emailId, messageId, message: propMessage }: MessageViewProps) {
-  const [message, setMessage] = useState<Message | null>(propMessage || null)
-  const [loading, setLoading] = useState(!propMessage)
+export function MessageView({ emailId, messageId }: MessageViewProps) {
+  const [message, setMessage] = useState<Message | null>(null)
+  const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>("html")
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const { theme } = useTheme()
 
   useEffect(() => {
-    // 如果已经有消息数据（发件记录），直接使用
-    if (propMessage) {
-      setMessage(propMessage)
-      setLoading(false)
-      if (!propMessage.html) {
-        setViewMode("text")
-      }
-      return
-    }
-
-    // 否则从 API 获取（收件记录）
     const fetchMessage = async () => {
       try {
         const response = await fetch(`/api/emails/${emailId}/${messageId}`)
@@ -61,7 +49,7 @@ export function MessageView({ emailId, messageId, message: propMessage }: Messag
     }
 
     fetchMessage()
-  }, [emailId, messageId, propMessage])
+  }, [emailId, messageId])
 
   const updateIframeContent = useCallback(() => {
     if (viewMode === "html" && message?.html && iframeRef.current) {

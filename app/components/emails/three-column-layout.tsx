@@ -18,7 +18,6 @@ export function ThreeColumnLayout() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   const [isComposing, setIsComposing] = useState(false)
-  const [sentMessages, setSentMessages] = useState<any[]>([]) // 存储发件消息
   const { copyToClipboard } = useCopy()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
@@ -49,21 +48,8 @@ export function ThreeColumnLayout() {
   }
 
   const handleSentEmail = (sentData: { to: string; subject: string; content: string }) => {
-    if (!selectedEmail) return
-
-    const sentMessage = {
-      id: `sent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      from_address: selectedEmail.address,
-      to_address: sentData.to,
-      subject: sentData.subject,
-      content: sentData.content,
-      html: null,
-      received_at: Date.now(),
-      type: 'sent' as const
-    }
-
-    // 添加到发件消息列表
-    setSentMessages(prev => [sentMessage, ...prev])
+    // 发件成功后，邮件列表会自动刷新并显示新的发件记录
+    // 不需要在这里做任何处理，因为发件记录已经保存到数据库中
   }
 
   return (
@@ -111,7 +97,6 @@ export function ThreeColumnLayout() {
                 }}
                 selectedMessageId={selectedMessageId}
                 onComposeClick={handleComposeClick}
-                sentMessages={sentMessages.filter(msg => msg.from_address === selectedEmail.address)}
               />
             </div>
           )}
@@ -138,7 +123,6 @@ export function ThreeColumnLayout() {
                 emailId={selectedEmail.id}
                 messageId={selectedMessageId}
                 onClose={() => setSelectedMessageId(null)}
-                message={sentMessages.find(msg => msg.id === selectedMessageId)}
               />
             </div>
           ) : null}
@@ -189,7 +173,6 @@ export function ThreeColumnLayout() {
                   onMessageSelect={setSelectedMessageId}
                   selectedMessageId={selectedMessageId}
                   onComposeClick={handleComposeClick}
-                  sentMessages={sentMessages.filter(msg => msg.from_address === selectedEmail.address)}
                 />
               </div>
             </div>
@@ -233,7 +216,6 @@ export function ThreeColumnLayout() {
                   emailId={selectedEmail.id}
                   messageId={selectedMessageId}
                   onClose={() => setSelectedMessageId(null)}
-                  message={sentMessages.find(msg => msg.id === selectedMessageId)}
                 />
               </div>
             </div>

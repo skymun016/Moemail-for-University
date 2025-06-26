@@ -89,13 +89,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       )
     }
     
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: {
         id: message.id,
         from_address: message.fromAddress,
+        to_address: message.toAddress,
         subject: message.subject,
         content: message.content,
         html: message.html,
+        type: message.type,
         received_at: message.receivedAt.getTime()
       }
     })

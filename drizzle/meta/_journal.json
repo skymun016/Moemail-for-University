@@ -85,6 +85,13 @@
       "when": 1741490895849,
       "tag": "0011_simple_vulcan",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1741491000000,
+      "tag": "0012_add_sent_messages_support",
+      "breakpoints": true
     }
   ]
 }
