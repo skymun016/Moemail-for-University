@@ -36,7 +36,7 @@ interface MessageListProps {
   onMessageSelect: (messageId: string | null) => void
   selectedMessageId?: string | null
   onComposeClick?: () => void
-  onSentEmail?: (sentMessage: Message) => void // 添加发件回调
+  sentMessages?: Message[] // 接收发件消息列表
 }
 
 interface MessageResponse {
@@ -49,7 +49,7 @@ interface MessageListRef {
   addSentMessage: (sentData: { to: string; subject: string; content: string }) => void
 }
 
-export const MessageList = forwardRef<MessageListRef, MessageListProps>(function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick, onSentEmail }, ref) {
+export const MessageList = forwardRef<MessageListRef, MessageListProps>(function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick, sentMessages = [] }, ref) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -65,66 +65,34 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
   const [deletingAll, setDeletingAll] = useState(false)
   const { toast } = useToast()
 
-  // 添加发件消息到列表
-  const addSentMessage = useCallback((sentData: { to: string; subject: string; content: string }) => {
-    toast({
-      title: "调试信息",
-      description: `addSentMessage 被调用，主题: ${sentData.subject}`,
-    })
-
-    const sentMessage: Message = {
-      id: `sent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      from_address: email.address,
-      to_address: sentData.to,
-      subject: sentData.subject,
-      received_at: Date.now(),
-      type: 'sent'
-    }
-
-    toast({
-      title: "调试信息",
-      description: `正在添加发件消息到列表，ID: ${sentMessage.id}`,
-    })
-
-    setMessages(prev => {
-      const newMessages = [sentMessage, ...prev]
-      toast({
-        title: "调试信息",
-        description: `消息列表已更新，总数: ${newMessages.length}`,
-      })
-      return newMessages
-    })
-    setTotal(prev => prev + 1)
-
-    if (onSentEmail) {
-      onSentEmail(sentMessage)
-    }
-  }, [email.address, onSentEmail, toast])
-
-  // 暴露方法给父组件
+  // 暴露方法给父组件（保留为了兼容性，但不再使用）
   useImperativeHandle(ref, () => ({
-    addSentMessage
-  }), [addSentMessage])
+    addSentMessage: () => {}
+  }), [])
 
   // 当 messages 改变时更新 ref
   useEffect(() => {
     messagesRef.current = messages
   }, [messages])
 
+  // 合并收件和发件消息
+  const allMessages = [...sentMessages, ...messages].sort((a, b) => b.received_at - a.received_at)
+
   // 当搜索条件变化时更新过滤后的消息列表
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredMessages(messages)
+      setFilteredMessages(allMessages)
       return
     }
-    
+
     const query = searchQuery.toLowerCase()
-    const filtered = messages.filter(message => 
-      message.subject.toLowerCase().includes(query) || 
-      message.from_address.toLowerCase().includes(query)
+    const filtered = allMessages.filter(message =>
+      message.subject.toLowerCase().includes(query) ||
+      message.from_address.toLowerCase().includes(query) ||
+      (message.to_address && message.to_address.toLowerCase().includes(query))
     )
     setFilteredMessages(filtered)
-  }, [searchQuery, messages])
+  }, [searchQuery, allMessages])
 
   const fetchMessages = async (cursor?: string) => {
     try {
@@ -341,10 +309,10 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
         </div>
         
         <span className="text-xs text-gray-500 flex-shrink-0">
-          {filteredMessages.length > 0 
-            ? searchQuery 
-              ? `${filteredMessages.length}/${total} 封邮件` 
-              : `${total} 封邮件` 
+          {filteredMessages.length > 0
+            ? searchQuery
+              ? `${filteredMessages.length}/${total + sentMessages.length} 封邮件`
+              : `${total + sentMessages.length} 封邮件`
             : "暂无邮件"}
         </span>
       </div>

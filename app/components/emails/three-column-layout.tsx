@@ -19,7 +19,7 @@ export function ThreeColumnLayout() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   const [isComposing, setIsComposing] = useState(false)
-  const messageListRef = useRef<any>(null)
+  const [sentMessages, setSentMessages] = useState<any[]>([]) // 存储发件消息
   const { copyToClipboard } = useCopy()
   const { toast } = useToast()
 
@@ -51,24 +51,29 @@ export function ThreeColumnLayout() {
   }
 
   const handleSentEmail = (sentData: { to: string; subject: string; content: string }) => {
+    if (!selectedEmail) return
+
     toast({
       title: "调试信息",
       description: `handleSentEmail 被调用，收件人: ${sentData.to}`,
     })
 
-    if (messageListRef.current && messageListRef.current.addSentMessage) {
-      toast({
-        title: "调试信息",
-        description: "正在调用 addSentMessage",
-      })
-      messageListRef.current.addSentMessage(sentData)
-    } else {
-      toast({
-        title: "调试错误",
-        description: "messageListRef.current 或 addSentMessage 不可用",
-        variant: "destructive"
-      })
+    const sentMessage = {
+      id: `sent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      from_address: selectedEmail.address,
+      to_address: sentData.to,
+      subject: sentData.subject,
+      received_at: Date.now(),
+      type: 'sent'
     }
+
+    // 添加到发件消息列表
+    setSentMessages(prev => [sentMessage, ...prev])
+
+    toast({
+      title: "调试信息",
+      description: `发件消息已添加到列表，ID: ${sentMessage.id}`,
+    })
   }
 
   return (
@@ -109,7 +114,6 @@ export function ThreeColumnLayout() {
           {selectedEmail && (
             <div className="flex-1 overflow-auto">
               <MessageList
-                ref={messageListRef}
                 email={selectedEmail}
                 onMessageSelect={(messageId) => {
                   setSelectedMessageId(messageId)
@@ -117,6 +121,7 @@ export function ThreeColumnLayout() {
                 }}
                 selectedMessageId={selectedMessageId}
                 onComposeClick={handleComposeClick}
+                sentMessages={sentMessages.filter(msg => msg.from_address === selectedEmail.address)}
               />
             </div>
           )}
@@ -189,11 +194,11 @@ export function ThreeColumnLayout() {
               </div>
               <div className="flex-1 overflow-auto">
                 <MessageList
-                  ref={messageListRef}
                   email={selectedEmail}
                   onMessageSelect={setSelectedMessageId}
                   selectedMessageId={selectedMessageId}
                   onComposeClick={handleComposeClick}
+                  sentMessages={sentMessages.filter(msg => msg.from_address === selectedEmail.address)}
                 />
               </div>
             </div>
