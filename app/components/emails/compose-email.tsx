@@ -116,17 +116,7 @@ export function ComposeEmail({ emailId, emailAddress, onClose, onSentEmail }: Co
       // 通知父组件发件成功
       if (onSentEmail) {
         const sentData = { to, subject, content }
-        toast({
-          title: "调试信息",
-          description: `正在调用 onSentEmail，收件人: ${to}`,
-        })
         onSentEmail(sentData)
-      } else {
-        toast({
-          title: "调试错误",
-          description: "onSentEmail 回调未提供",
-          variant: "destructive"
-        })
       }
 
       // 清空表单

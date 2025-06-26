@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { EmailList } from "./email-list"
 import { MessageList } from "./message-list"
 import { MessageView } from "./message-view"
@@ -8,7 +8,6 @@ import { ComposeEmail } from "./compose-email"
 import { cn } from "@/lib/utils"
 import { useCopy } from "@/hooks/use-copy"
 import { Copy } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
 
 interface Email {
   id: string
@@ -21,7 +20,6 @@ export function ThreeColumnLayout() {
   const [isComposing, setIsComposing] = useState(false)
   const [sentMessages, setSentMessages] = useState<any[]>([]) // 存储发件消息
   const { copyToClipboard } = useCopy()
-  const { toast } = useToast()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
   const headerClass = "p-2 border-b-2 border-primary/20 flex items-center justify-between shrink-0"
@@ -53,11 +51,6 @@ export function ThreeColumnLayout() {
   const handleSentEmail = (sentData: { to: string; subject: string; content: string }) => {
     if (!selectedEmail) return
 
-    toast({
-      title: "调试信息",
-      description: `handleSentEmail 被调用，收件人: ${sentData.to}`,
-    })
-
     const sentMessage = {
       id: `sent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       from_address: selectedEmail.address,
@@ -69,11 +62,6 @@ export function ThreeColumnLayout() {
 
     // 添加到发件消息列表
     setSentMessages(prev => [sentMessage, ...prev])
-
-    toast({
-      title: "调试信息",
-      description: `发件消息已添加到列表，ID: ${sentMessage.id}`,
-    })
   }
 
   return (
