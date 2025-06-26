@@ -29,9 +29,14 @@
 - **邮件查询**：可以在邮件列表中输入关键词（发件人、邮件内容、邮件主题）自动检索对应的邮件
   ![image](https://github.com/user-attachments/assets/7ead0f40-9aaa-456b-943e-bf9fbd637c05)
 - **发送邮件**：支持通过 Resend 邮件服务发送邮件（附件功能开发中）
+  ![image](https://github.com/user-attachments/assets/a47d1c6c-0b4a-4714-ac24-471b791f4fb0)
+  ![image](https://github.com/user-attachments/assets/936c0af0-5556-438b-b111-959a7f512ca5)
+
+
 
 ### 未来计划
 - [x] 接入SMTP Server新增发件功能
+- [ ] 增加发件记录
 - [ ] 接入Linux Do Connect
 - [ ] 更多的功能For Admin+Users
 
@@ -51,7 +56,7 @@
 
 1. 前往 [Resend](https://resend.com) 注册账户
 2. 获取 API Key
-3. 在 GitHub Actions Secrets 中配置以下环境变量：
+3. 在 cloudflare worker&pages 设置中配置以下环境变量：
    - `RESEND_API_KEY`: 你的 Resend API 密钥
 
 **注意事项：**
