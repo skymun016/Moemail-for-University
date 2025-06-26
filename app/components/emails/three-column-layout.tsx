@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { EmailList } from "./email-list"
 import { MessageList } from "./message-list"
 import { MessageView } from "./message-view"
@@ -18,7 +18,7 @@ export function ThreeColumnLayout() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   const [isComposing, setIsComposing] = useState(false)
-  const [messageListRef, setMessageListRef] = useState<any>(null)
+  const messageListRef = useRef<any>(null)
   const { copyToClipboard } = useCopy()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
@@ -49,8 +49,8 @@ export function ThreeColumnLayout() {
   }
 
   const handleSentEmail = (sentData: { to: string; subject: string; content: string }) => {
-    if (messageListRef && messageListRef.addSentMessage) {
-      messageListRef.addSentMessage(sentData)
+    if (messageListRef.current && messageListRef.current.addSentMessage) {
+      messageListRef.current.addSentMessage(sentData)
     }
   }
 
@@ -92,7 +92,7 @@ export function ThreeColumnLayout() {
           {selectedEmail && (
             <div className="flex-1 overflow-auto">
               <MessageList
-                ref={setMessageListRef}
+                ref={messageListRef}
                 email={selectedEmail}
                 onMessageSelect={(messageId) => {
                   setSelectedMessageId(messageId)
@@ -172,7 +172,7 @@ export function ThreeColumnLayout() {
               </div>
               <div className="flex-1 overflow-auto">
                 <MessageList
-                  ref={setMessageListRef}
+                  ref={messageListRef}
                   email={selectedEmail}
                   onMessageSelect={setSelectedMessageId}
                   selectedMessageId={selectedMessageId}

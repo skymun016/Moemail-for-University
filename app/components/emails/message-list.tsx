@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react"
 import {Mail, Calendar, RefreshCw, Trash2, Search, Send, Trash} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -66,7 +66,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
   const { toast } = useToast()
 
   // 添加发件消息到列表
-  const addSentMessage = (sentData: { to: string; subject: string; content: string }) => {
+  const addSentMessage = useCallback((sentData: { to: string; subject: string; content: string }) => {
     const sentMessage: Message = {
       id: `sent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       from_address: email.address,
@@ -82,12 +82,12 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
     if (onSentEmail) {
       onSentEmail(sentMessage)
     }
-  }
+  }, [email.address, onSentEmail])
 
   // 暴露方法给父组件
   useImperativeHandle(ref, () => ({
     addSentMessage
-  }), [])
+  }), [addSentMessage])
 
   // 当 messages 改变时更新 ref
   useEffect(() => {
