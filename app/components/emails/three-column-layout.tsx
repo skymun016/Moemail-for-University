@@ -18,6 +18,7 @@ export function ThreeColumnLayout() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   const [isComposing, setIsComposing] = useState(false)
+  const [messageListRef, setMessageListRef] = useState<any>(null)
   const { copyToClipboard } = useCopy()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
@@ -45,6 +46,12 @@ export function ThreeColumnLayout() {
 
   const handleComposeClose = () => {
     setIsComposing(false)
+  }
+
+  const handleSentEmail = (sentData: { to: string; subject: string; content: string }) => {
+    if (messageListRef && messageListRef.addSentMessage) {
+      messageListRef.addSentMessage(sentData)
+    }
   }
 
   return (
@@ -85,6 +92,7 @@ export function ThreeColumnLayout() {
           {selectedEmail && (
             <div className="flex-1 overflow-auto">
               <MessageList
+                ref={setMessageListRef}
                 email={selectedEmail}
                 onMessageSelect={(messageId) => {
                   setSelectedMessageId(messageId)
@@ -109,6 +117,7 @@ export function ThreeColumnLayout() {
                 emailId={selectedEmail.id}
                 emailAddress={selectedEmail.address}
                 onClose={handleComposeClose}
+                onSentEmail={handleSentEmail}
               />
             </div>
           ) : selectedEmail && selectedMessageId ? (
@@ -163,6 +172,7 @@ export function ThreeColumnLayout() {
               </div>
               <div className="flex-1 overflow-auto">
                 <MessageList
+                  ref={setMessageListRef}
                   email={selectedEmail}
                   onMessageSelect={setSelectedMessageId}
                   selectedMessageId={selectedMessageId}
@@ -188,6 +198,7 @@ export function ThreeColumnLayout() {
                   emailId={selectedEmail.id}
                   emailAddress={selectedEmail.address}
                   onClose={() => setIsComposing(false)}
+                  onSentEmail={handleSentEmail}
                 />
               </div>
             </div>

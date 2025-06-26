@@ -13,6 +13,7 @@ interface ComposeEmailProps {
   emailId: string
   emailAddress: string
   onClose?: () => void
+  onSentEmail?: (sentData: { to: string; subject: string; content: string }) => void
 }
 
 interface Attachment {
@@ -20,7 +21,7 @@ interface Attachment {
   id: string
 }
 
-export function ComposeEmail({ emailId, emailAddress, onClose }: ComposeEmailProps) {
+export function ComposeEmail({ emailId, emailAddress, onClose, onSentEmail }: ComposeEmailProps) {
   const [to, setTo] = useState("")
   const [subject, setSubject] = useState("")
   const [content, setContent] = useState("")
@@ -112,12 +113,21 @@ export function ComposeEmail({ emailId, emailAddress, onClose }: ComposeEmailPro
         description: "邮件已发送"
       })
 
+      // 通知父组件发件成功
+      if (onSentEmail) {
+        onSentEmail({
+          to,
+          subject,
+          content
+        })
+      }
+
       // 清空表单
       setTo("")
       setSubject("")
       setContent("")
       setAttachments([])
-      
+
       if (onClose) {
         onClose()
       }

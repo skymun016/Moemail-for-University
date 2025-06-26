@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
 import {Mail, Calendar, RefreshCw, Trash2, Search, Send, Trash} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,8 @@ interface Message {
   from_address: string
   subject: string
   received_at: number
+  type?: 'sent' | 'received' // 添加类型字段，用于区分发件和收件
+  to_address?: string // 发件时的收件人地址
 }
 
 interface MessageListProps {
@@ -34,6 +36,7 @@ interface MessageListProps {
   onMessageSelect: (messageId: string | null) => void
   selectedMessageId?: string | null
   onComposeClick?: () => void
+  onSentEmail?: (sentMessage: Message) => void // 添加发件回调
 }
 
 interface MessageResponse {
@@ -42,7 +45,11 @@ interface MessageResponse {
   total: number
 }
 
-export function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick }: MessageListProps) {
+interface MessageListRef {
+  addSentMessage: (sentData: { to: string; subject: string; content: string }) => void
+}
+
+export const MessageList = forwardRef<MessageListRef, MessageListProps>(function MessageList({ email, onMessageSelect, selectedMessageId, onComposeClick, onSentEmail }, ref) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -57,6 +64,30 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
   const [deletingAll, setDeletingAll] = useState(false)
   const { toast } = useToast()
+
+  // 添加发件消息到列表
+  const addSentMessage = (sentData: { to: string; subject: string; content: string }) => {
+    const sentMessage: Message = {
+      id: `sent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      from_address: email.address,
+      to_address: sentData.to,
+      subject: sentData.subject,
+      received_at: Date.now(),
+      type: 'sent'
+    }
+
+    setMessages(prev => [sentMessage, ...prev])
+    setTotal(prev => prev + 1)
+
+    if (onSentEmail) {
+      onSentEmail(sentMessage)
+    }
+  }
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    addSentMessage
+  }), [])
 
   // 当 messages 改变时更新 ref
   useEffect(() => {
@@ -316,11 +347,20 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
                 )}
               >
                 <div className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 text-primary/60 mt-1" />
+                  {message.type === 'sent' ? (
+                    <Send className="w-4 h-4 text-green-600 mt-1" />
+                  ) : (
+                    <Mail className="w-4 h-4 text-primary/60 mt-1" />
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm truncate">{message.subject}</p>
                     <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                      <span className="truncate">{message.from_address}</span>
+                      <span className="truncate">
+                        {message.type === 'sent'
+                          ? `发送至: ${message.to_address}`
+                          : message.from_address
+                        }
+                      </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(message.received_at).toLocaleString()}
@@ -396,4 +436,4 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
     </AlertDialog>
   </>
   )
-} 
+})
