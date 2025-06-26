@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "zh_CN",
-    url: "https://moemail.app",
+    url: "https://mail.mri.edu.kg",
     title: "MRI mail - University Email System",
     description: "安全、快速的大学邮件系统，保护您的隐私，远离垃圾邮件。支持即时收件。",
     siteName: "MRI mail",

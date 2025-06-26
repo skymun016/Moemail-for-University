@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import {Mail, Calendar, RefreshCw, Trash2, Search, Send} from "lucide-react"
+import {Mail, Calendar, RefreshCw, Trash2, Search, Send, TrashX} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useThrottle } from "@/hooks/use-throttle"
@@ -54,6 +54,8 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
   const [messageToDelete, setMessageToDelete] = useState<Message | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([])
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
+  const [deletingAll, setDeletingAll] = useState(false)
   const { toast } = useToast()
 
   // 当 messages 改变时更新 ref
@@ -188,6 +190,48 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
     }
   }
 
+  const handleDeleteAll = async () => {
+    setDeletingAll(true)
+    try {
+      const response = await fetch(`/api/emails/${email.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ action: "deleteAllMessages" })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        toast({
+          title: "错误",
+          description: (data as { error: string }).error,
+          variant: "destructive"
+        })
+        return
+      }
+
+      const result = await response.json()
+      setMessages([])
+      setTotal(0)
+      onMessageSelect(null)
+
+      toast({
+        title: "成功",
+        description: `已删除 ${result.deletedCount} 封邮件`
+      })
+    } catch {
+      toast({
+        title: "错误",
+        description: "删除所有邮件失败",
+        variant: "destructive"
+      })
+    } finally {
+      setDeletingAll(false)
+      setShowDeleteAllDialog(false)
+    }
+  }
+
   useEffect(() => {
     if (!email.id) {
       return
@@ -226,7 +270,18 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
         >
           <Send className="h-4 w-4" />
         </Button>
-        
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowDeleteAllDialog(true)}
+          disabled={total === 0 || deletingAll}
+          className="h-8 w-8 flex-shrink-0"
+          title="删除所有邮件"
+        >
+          <TrashX className="h-4 w-4 text-destructive" />
+        </Button>
+
         <div className="relative flex-1">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -314,6 +369,27 @@ export function MessageList({ email, onMessageSelect, selectedMessageId, onCompo
               onClick={() => messageToDelete && handleDelete(messageToDelete)}
           >
             删除
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>确认删除所有邮件</AlertDialogTitle>
+          <AlertDialogDescription>
+            确定要删除该邮箱中的所有 {total} 封邮件吗？此操作不可撤销。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deletingAll}>取消</AlertDialogCancel>
+          <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={handleDeleteAll}
+              disabled={deletingAll}
+          >
+            {deletingAll ? "删除中..." : "删除所有"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

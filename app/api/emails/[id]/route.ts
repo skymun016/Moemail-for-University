@@ -42,7 +42,58 @@ export async function DELETE(
       { status: 500 }
     )
   }
-} 
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const userId = await getUserId()
+
+  try {
+    const db = createDb()
+    const { id } = await params
+    const { action } = await request.json()
+
+    // 验证邮箱权限
+    const email = await db.query.emails.findFirst({
+      where: and(
+        eq(emails.id, id),
+        eq(emails.userId, userId!)
+      )
+    })
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "邮箱不存在或无权限操作" },
+        { status: 403 }
+      )
+    }
+
+    // 处理批量删除所有邮件
+    if (action === "deleteAllMessages") {
+      const result = await db.delete(messages)
+        .where(eq(messages.emailId, id))
+        .returning({ id: messages.id })
+
+      return NextResponse.json({
+        success: true,
+        deletedCount: result.length
+      })
+    }
+
+    return NextResponse.json(
+      { error: "无效的操作" },
+      { status: 400 }
+    )
+  } catch (error) {
+    console.error('Failed to perform batch operation:', error)
+    return NextResponse.json(
+      { error: "批量操作失败" },
+      { status: 500 }
+    )
+  }
+}
 
 const PAGE_SIZE = 20
 
