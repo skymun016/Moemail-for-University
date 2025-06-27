@@ -229,19 +229,19 @@ export function PromotePanel() {
     }
 
     return (
-      <div className="mb-4 bg-primary/5 border border-primary/20 rounded-lg p-4">
+      <div className="mb-3 bg-primary/5 border border-primary/20 rounded-lg p-3">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-xs">
             <strong>用户名：</strong>
             <span>{foundUser.username || foundUser.email}</span>
           </div>
           {foundUser.name && (
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-xs">
               <strong>昵称：</strong>
               <span>{foundUser.name}</span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-xs">
             <strong>当前角色：</strong>
             <span>{roleName}</span>
           </div>
@@ -356,61 +356,63 @@ export function PromotePanel() {
         </div>
       </Card>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* 用户信息显示区域 */}
         {foundUser && renderUserInfo()}
 
         {/* 错误信息 */}
         {searchError && (
-          <div className="mb-4 bg-destructive/10 border border-destructive text-destructive rounded-lg p-4 flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <div className="text-sm">
+          <div className="mb-3 bg-destructive/10 border border-destructive text-destructive rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+            <div className="text-xs">
               {searchError}
             </div>
           </div>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <div className="flex-1">
             <Input
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               placeholder="输入用户名或邮箱"
               disabled={loading}
+              className="h-8 text-sm"
             />
           </div>
-          <Button 
+          <Button
             onClick={handleSearch}
             disabled={!searchText.trim() || loading}
             size="sm"
+            className="h-8 px-3 text-xs"
           >
             查询
           </Button>
         </div>
 
         <div className="flex gap-2 items-center">
-          <div className="text-sm">设置为：</div>
+          <div className="text-xs text-muted-foreground">设置为：</div>
           <Select value={targetRole} onValueChange={(value) => setTargetRole(value as RoleWithoutEmperor)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-28 h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ROLES.DUKE}>
-                <div className="flex items-center gap-2">
-                  <Gem className="w-4 h-4" />
-                  教授
+                <div className="flex items-center gap-1.5">
+                  <Gem className="w-3 h-3" />
+                  <span className="text-xs">教授</span>
                 </div>
               </SelectItem>
               <SelectItem value={ROLES.KNIGHT}>
-                <div className="flex items-center gap-2">
-                  <Sword className="w-4 h-4" />
-                  认证学生
+                <div className="flex items-center gap-1.5">
+                  <Sword className="w-3 h-3" />
+                  <span className="text-xs">认证学生</span>
                 </div>
               </SelectItem>
               <SelectItem value={ROLES.CIVILIAN}>
-                <div className="flex items-center gap-2">
-                  <User2 className="w-4 h-4" />
-                  未认证
+                <div className="flex items-center gap-1.5">
+                  <User2 className="w-3 h-3" />
+                  <span className="text-xs">未认证</span>
                 </div>
               </SelectItem>
             </SelectContent>
@@ -420,10 +422,11 @@ export function PromotePanel() {
         <Button
           onClick={handleAction}
           disabled={loading || !searchText.trim() || !foundUser}
-          className="w-full"
+          size="sm"
+          className="w-full h-8 text-xs"
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3 h-3 animate-spin" />
           ) : (
             `设为${roleNames[targetRole as keyof typeof roleNames]}`
           )}
