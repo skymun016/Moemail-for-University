@@ -37,7 +37,7 @@
 ### 未来计划
 - [x] 接入SMTP Server新增发件功能
 - [x] 增加发件记录
-- [ ] 增加收件回复
+- [x] 增加收件回复
 - [ ] 接入Linux Do Connect
 - [ ] 更多的功能For Admin+Users
 
