@@ -14,6 +14,10 @@ interface ComposeEmailProps {
   emailAddress: string
   onClose?: () => void
   onSentEmail?: () => void
+  // 回复相关的预填充参数
+  replyTo?: string
+  replySubject?: string
+  replyContent?: string
 }
 
 interface Attachment {
@@ -21,10 +25,10 @@ interface Attachment {
   id: string
 }
 
-export function ComposeEmail({ emailId, emailAddress, onClose, onSentEmail }: ComposeEmailProps) {
-  const [to, setTo] = useState("")
-  const [subject, setSubject] = useState("")
-  const [content, setContent] = useState("")
+export function ComposeEmail({ emailId, emailAddress, onClose, onSentEmail, replyTo, replySubject, replyContent }: ComposeEmailProps) {
+  const [to, setTo] = useState(replyTo || "")
+  const [subject, setSubject] = useState(replySubject || "")
+  const [content, setContent] = useState(replyContent || "")
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [sending, setSending] = useState(false)
   const { toast } = useToast()
@@ -147,7 +151,7 @@ export function ComposeEmail({ emailId, emailAddress, onClose, onSentEmail }: Co
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 space-y-4 border-b border-primary/20">
-        <h3 className="text-base font-bold">撰写新邮件</h3>
+        <h3 className="text-base font-bold">{replyTo ? "回复邮件" : "撰写新邮件"}</h3>
         <div className="text-xs text-gray-500">
           发件人：{emailAddress}
         </div>

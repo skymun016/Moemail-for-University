@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, Reply } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 
 interface Message {
@@ -21,11 +22,12 @@ interface MessageViewProps {
   emailId: string
   messageId: string
   onClose: () => void
+  onReply?: (replyTo: string, replySubject: string, replyContent: string) => void
 }
 
 type ViewMode = "html" | "text"
 
-export function MessageView({ emailId, messageId }: MessageViewProps) {
+export function MessageView({ emailId, messageId, onReply }: MessageViewProps) {
   const [message, setMessage] = useState<Message | null>(null)
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>("html")
@@ -149,6 +151,22 @@ export function MessageView({ emailId, messageId }: MessageViewProps) {
     updateIframeContent()
   }, [updateIframeContent])
 
+  // 处理回复按钮点击
+  const handleReply = () => {
+    if (!message || !onReply) return
+
+    // 只对收件邮件显示回复按钮
+    if (message.type === 'sent') return
+
+    const replySubject = message.subject.startsWith('Re: ')
+      ? message.subject
+      : `Re: ${message.subject}`
+
+    const replyContent = `\n\n--- 原始邮件 ---\n发件人: ${message.from_address}\n时间: ${new Date(message.received_at).toLocaleString()}\n主题: ${message.subject}\n\n${message.content}`
+
+    onReply(message.from_address, replySubject, replyContent)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -162,7 +180,20 @@ export function MessageView({ emailId, messageId }: MessageViewProps) {
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 space-y-3 border-b border-primary/20">
-        <h3 className="text-base font-bold">{message.subject}</h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-base font-bold flex-1">{message.subject}</h3>
+          {message.type !== 'sent' && onReply && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReply}
+              className="shrink-0"
+            >
+              <Reply className="h-4 w-4 mr-1" />
+              回复
+            </Button>
+          )}
+        </div>
         <div className="text-xs text-gray-500 space-y-1">
           {message.type === 'sent' ? (
             <>

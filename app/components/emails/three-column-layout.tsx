@@ -18,6 +18,11 @@ export function ThreeColumnLayout() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   const [isComposing, setIsComposing] = useState(false)
+  const [replyData, setReplyData] = useState<{
+    replyTo: string
+    replySubject: string
+    replyContent: string
+  } | null>(null)
   const { copyToClipboard } = useCopy()
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
@@ -41,10 +46,18 @@ export function ThreeColumnLayout() {
   const handleComposeClick = () => {
     setIsComposing(true)
     setSelectedMessageId(null)
+    setReplyData(null) // 清除回复数据
   }
 
   const handleComposeClose = () => {
     setIsComposing(false)
+    setReplyData(null) // 清除回复数据
+  }
+
+  const handleReply = (replyTo: string, replySubject: string, replyContent: string) => {
+    setReplyData({ replyTo, replySubject, replyContent })
+    setIsComposing(true)
+    setSelectedMessageId(null)
   }
 
   const handleSentEmail = () => {
@@ -105,7 +118,7 @@ export function ThreeColumnLayout() {
         <div className={cn("col-span-5", columnClass)}>
           <div className={headerClass}>
             <h2 className={titleClass}>
-              {isComposing ? "撰写邮件" : selectedMessageId ? "邮件内容" : "选择邮件查看详情"}
+              {isComposing ? (replyData ? "回复邮件" : "撰写邮件") : selectedMessageId ? "邮件内容" : "选择邮件查看详情"}
             </h2>
           </div>
           {selectedEmail && isComposing ? (
@@ -115,6 +128,9 @@ export function ThreeColumnLayout() {
                 emailAddress={selectedEmail.address}
                 onClose={handleComposeClose}
                 onSentEmail={handleSentEmail}
+                replyTo={replyData?.replyTo}
+                replySubject={replyData?.replySubject}
+                replyContent={replyData?.replyContent}
               />
             </div>
           ) : selectedEmail && selectedMessageId ? (
@@ -123,6 +139,7 @@ export function ThreeColumnLayout() {
                 emailId={selectedEmail.id}
                 messageId={selectedMessageId}
                 onClose={() => setSelectedMessageId(null)}
+                onReply={handleReply}
               />
             </div>
           ) : null}
@@ -187,7 +204,7 @@ export function ThreeColumnLayout() {
                 >
                   ← 返回消息列表
                 </button>
-                <span className="text-sm font-medium">撰写邮件</span>
+                <span className="text-sm font-medium">{replyData ? "回复邮件" : "撰写邮件"}</span>
               </div>
               <div className="flex-1 overflow-auto">
                 <ComposeEmail
@@ -195,6 +212,9 @@ export function ThreeColumnLayout() {
                   emailAddress={selectedEmail.address}
                   onClose={() => setIsComposing(false)}
                   onSentEmail={handleSentEmail}
+                  replyTo={replyData?.replyTo}
+                  replySubject={replyData?.replySubject}
+                  replyContent={replyData?.replyContent}
                 />
               </div>
             </div>
@@ -216,6 +236,7 @@ export function ThreeColumnLayout() {
                   emailId={selectedEmail.id}
                   messageId={selectedMessageId}
                   onClose={() => setSelectedMessageId(null)}
+                  onReply={handleReply}
                 />
               </div>
             </div>
