@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Gem, Sword, User2, Loader2, AlertCircle, Users, Trash } from "lucide-react"
+import { Gem, Sword, User2, Loader2, AlertCircle, Users, Trash, Mail, Edit, Check, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
@@ -60,11 +60,16 @@ export function PromotePanel() {
     username?: string;
     email?: string;
     role?: string;
+    maxEmails?: number;
+    currentEmailCount?: number;
   } | null>(null)
   const [searchError, setSearchError] = useState<string | null>(null)
   const [roleStats, setRoleStats] = useState<RoleStats | null>(null)
   const [loadingStats, setLoadingStats] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [editingMaxEmails, setEditingMaxEmails] = useState(false)
+  const [newMaxEmails, setNewMaxEmails] = useState<number>(30)
+  const [updatingMaxEmails, setUpdatingMaxEmails] = useState(false)
 
   // 定义API响应类型
   type SearchResponse = {
@@ -75,6 +80,8 @@ export function PromotePanel() {
       username?: string;
       email?: string;
       role?: string;
+      maxEmails?: number;
+      currentEmailCount?: number;
     };
   };
 
@@ -195,18 +202,18 @@ export function PromotePanel() {
       const res = await fetch("/api/roles/delete-uncertified", {
         method: "DELETE"
       })
-      
+
       const data = await res.json()
-      
+
       if (!res.ok) {
         throw new Error((data as {error?: string}).error || "删除失败")
       }
-      
+
       toast({
         title: "删除成功",
         description: (data as {message?: string, deleted?: number}).message || `已删除 ${(data as {deleted?: number}).deleted} 个未认证用户`,
       })
-      
+
       // 更新角色统计
       fetchRoleStats()
     } catch (error) {
@@ -220,9 +227,91 @@ export function PromotePanel() {
     }
   }
 
+  // 更新用户邮箱数量限制
+  const handleUpdateMaxEmails = async () => {
+    if (!foundUser) return
+
+    setUpdatingMaxEmails(true)
+    try {
+      const res = await fetch(`/api/roles/users/${foundUser.id}/max-emails`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ maxEmails: newMaxEmails })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "更新失败")
+      }
+
+      toast({
+        title: "更新成功",
+        description: data.message || "邮箱数量限制已更新",
+      })
+
+      // 更新本地状态
+      setFoundUser({
+        ...foundUser,
+        maxEmails: newMaxEmails
+      })
+
+      setEditingMaxEmails(false)
+    } catch (error) {
+      toast({
+        title: "更新失败",
+        description: error instanceof Error ? error.message : "请稍后重试",
+        variant: "destructive"
+      })
+    } finally {
+      setUpdatingMaxEmails(false)
+    }
+  }
+
+  // 更新用户邮箱数量限制
+  const handleUpdateMaxEmails = async () => {
+    if (!foundUser) return
+
+    setUpdatingMaxEmails(true)
+    try {
+      const res = await fetch(`/api/roles/users/${foundUser.id}/max-emails`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ maxEmails: newMaxEmails })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "更新失败")
+      }
+
+      toast({
+        title: "更新成功",
+        description: data.message || "邮箱数量限制已更新",
+      })
+
+      // 更新本地状态
+      setFoundUser({
+        ...foundUser,
+        maxEmails: newMaxEmails
+      })
+
+      setEditingMaxEmails(false)
+    } catch (error) {
+      toast({
+        title: "更新失败",
+        description: error instanceof Error ? error.message : "请稍后重试",
+        variant: "destructive"
+      })
+    } finally {
+      setUpdatingMaxEmails(false)
+    }
+  }
+
   const renderUserInfo = () => {
     if (!foundUser) return null
-    
+
     let roleName = "未设置"
     if (foundUser.role && roleNames[foundUser.role as keyof typeof roleNames]) {
       roleName = roleNames[foundUser.role as keyof typeof roleNames]
@@ -230,7 +319,7 @@ export function PromotePanel() {
 
     return (
       <div className="mb-3 bg-primary/5 border border-primary/20 rounded-lg p-3">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 text-xs">
             <strong>用户名：</strong>
             <span>{foundUser.username || foundUser.email}</span>
@@ -244,6 +333,73 @@ export function PromotePanel() {
           <div className="flex items-center gap-2 text-xs">
             <strong>当前角色：</strong>
             <span>{roleName}</span>
+          </div>
+
+          {/* 邮箱数量信息 */}
+          <div className="border-t border-primary/10 pt-2 mt-1">
+            <div className="flex items-center gap-2 text-xs mb-1">
+              <Mail className="w-3 h-3" />
+              <strong>邮箱使用情况：</strong>
+              <span>
+                {foundUser.currentEmailCount || 0} / {foundUser.maxEmails || 30}
+              </span>
+            </div>
+
+            {/* 邮箱数量限制编辑 */}
+            <div className="flex items-center gap-2 text-xs">
+              <strong>邮箱数量限制：</strong>
+              {editingMaxEmails ? (
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    value={newMaxEmails}
+                    onChange={(e) => setNewMaxEmails(Number(e.target.value))}
+                    className="h-6 w-16 text-xs"
+                    min="0"
+                    max="1000"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={handleUpdateMaxEmails}
+                    disabled={updatingMaxEmails}
+                  >
+                    {updatingMaxEmails ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Check className="w-3 h-3" />
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={() => {
+                      setEditingMaxEmails(false)
+                      setNewMaxEmails(foundUser.maxEmails || 30)
+                    }}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <span>{foundUser.maxEmails || 30}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={() => {
+                      setEditingMaxEmails(true)
+                      setNewMaxEmails(foundUser.maxEmails || 30)
+                    }}
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

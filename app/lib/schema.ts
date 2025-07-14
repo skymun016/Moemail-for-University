@@ -13,6 +13,7 @@ export const users = sqliteTable("user", {
   image: text("image"),
   username: text("username").unique(),
   password: text("password"),
+  maxEmails: integer("max_emails").default(30), // 用户可创建的最大邮箱数量，默认30个
 })
 export const accounts = sqliteTable(
   "account",
