@@ -68,7 +68,7 @@ export function PromotePanel() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [editingMaxEmails, setEditingMaxEmails] = useState(false)
-  const [newMaxEmails, setNewMaxEmails] = useState<number>(0)
+  const [newMaxEmails, setNewMaxEmails] = useState<number>(1)
   const [updatingMaxEmails, setUpdatingMaxEmails] = useState(false)
 
   // 定义API响应类型
@@ -300,7 +300,7 @@ export function PromotePanel() {
               <Mail className="w-3 h-3" />
               <strong>邮箱使用情况：</strong>
               <span>
-                {foundUser.currentEmailCount || 0} / {foundUser.maxEmails || 30}
+                {foundUser.currentEmailCount || 0} / {foundUser.maxEmails ?? 1}
               </span>
             </div>
 
@@ -336,7 +336,7 @@ export function PromotePanel() {
                     className="h-6 w-6 p-0"
                     onClick={() => {
                       setEditingMaxEmails(false)
-                      setNewMaxEmails(foundUser.maxEmails ?? 0)
+                      setNewMaxEmails(foundUser.maxEmails ?? 1)
                     }}
                   >
                     <X className="w-3 h-3" />
@@ -344,14 +344,14 @@ export function PromotePanel() {
                 </div>
               ) : (
                 <div className="flex items-center gap-1">
-                  <span>{foundUser.maxEmails || 30}</span>
+                  <span>{foundUser.maxEmails ?? 1}</span>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="h-6 w-6 p-0"
                     onClick={() => {
                       setEditingMaxEmails(true)
-                      setNewMaxEmails(foundUser.maxEmails || 30)
+                      setNewMaxEmails(foundUser.maxEmails ?? 1)
                     }}
                   >
                     <Edit className="w-3 h-3" />

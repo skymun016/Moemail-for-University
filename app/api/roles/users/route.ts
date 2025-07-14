@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         username: user.username,
         email: user.email,
         role: user.userRoles[0]?.role.name,
-        maxEmails: user.maxEmails ?? 0, // 最大邮箱数量限制（使用 ?? 以支持 0 值）
+        maxEmails: user.maxEmails ?? 1, // 最大邮箱数量限制（默认为1）
         currentEmailCount: currentEmailCount // 当前邮箱数量
       }
     })
