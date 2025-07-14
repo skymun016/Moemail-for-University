@@ -92,6 +92,20 @@
       "when": 1741491000000,
       "tag": "0012_add_sent_messages_support",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1741491100000,
+      "tag": "0013_add_max_emails_to_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1741491200000,
+      "tag": "0014_update_default_max_emails",
+      "breakpoints": true
     }
   ]
 }

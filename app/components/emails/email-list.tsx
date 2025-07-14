@@ -7,7 +7,6 @@ import { Mail, RefreshCw, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useThrottle } from "@/hooks/use-throttle"
-import { EMAIL_CONFIG } from "@/config"
 import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { ROLES } from "@/lib/permissions"
 import { useUserRole } from "@/hooks/use-user-role"
-import { useConfig } from "@/hooks/use-config"
+import { useUserInfo } from "@/hooks/use-user-info"
 
 interface Email {
   id: string
@@ -44,7 +43,7 @@ interface EmailResponse {
 export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
   const { data: session } = useSession()
   const { role } = useUserRole()
-  const { config } = useConfig()
+  const { maxEmails } = useUserInfo()
   const [emails, setEmails] = useState<Email[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -173,11 +172,11 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
               {role === ROLES.EMPEROR ? (
                 `${total}/∞ 个邮箱`
               ) : (
-                `${total}/${config?.maxEmails || EMAIL_CONFIG.MAX_ACTIVE_EMAILS} 个邮箱`
+                `${total}/${maxEmails} 个邮箱`
               )}
             </span>
           </div>
-          <CreateDialog onEmailCreated={handleRefresh} />
+          <CreateDialog onEmailCreated={handleRefresh} maxEmails={maxEmails} total={total} />
         </div>
         
         <div className="flex-1 overflow-auto p-2" onScroll={handleScroll}>
@@ -232,8 +231,15 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
               )}
             </div>
           ) : (
-            <div className="text-center text-sm text-gray-500">
-              还没有邮箱，创建一个吧！
+            <div className="text-center text-sm text-gray-500 p-4">
+              {maxEmails === 0 ? (
+                <div>
+                  <div className="mb-2">您当前没有创建邮箱的权限</div>
+                  <div className="text-xs">请联系管理员申请邮箱使用权限</div>
+                </div>
+              ) : (
+                "还没有邮箱，创建一个吧！"
+              )}
             </div>
           )}
         </div>

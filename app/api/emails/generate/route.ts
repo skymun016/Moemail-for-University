@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { nanoid } from "nanoid"
 import { createDb } from "@/lib/db"
-import { emails } from "@/lib/schema"
+import { emails, users } from "@/lib/schema"
 import { eq, and, gt, sql } from "drizzle-orm"
 import { EXPIRY_OPTIONS } from "@/types/email"
 import { EMAIL_CONFIG } from "@/config"
@@ -21,7 +21,13 @@ export async function POST(request: Request) {
 
   try {
     if (userRole !== ROLES.EMPEROR) {
-      const maxEmails = await env.SITE_CONFIG.get("MAX_EMAILS") || EMAIL_CONFIG.MAX_ACTIVE_EMAILS.toString()
+      // 获取用户的个人邮箱数量限制
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, userId!),
+        columns: { maxEmails: true }
+      })
+
+      const maxEmails = user?.maxEmails ?? EMAIL_CONFIG.MAX_ACTIVE_EMAILS
       const activeEmailsCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(emails)
@@ -31,8 +37,8 @@ export async function POST(request: Request) {
             gt(emails.expiresAt, new Date())
           )
         )
-      
-      if (Number(activeEmailsCount[0].count) >= Number(maxEmails)) {
+
+      if (Number(activeEmailsCount[0].count) >= maxEmails) {
         return NextResponse.json(
           { error: `已达到最大邮箱数量限制 (${maxEmails})` },
           { status: 403 }

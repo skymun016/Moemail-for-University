@@ -68,7 +68,7 @@ export function PromotePanel() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [editingMaxEmails, setEditingMaxEmails] = useState(false)
-  const [newMaxEmails, setNewMaxEmails] = useState<number>(30)
+  const [newMaxEmails, setNewMaxEmails] = useState<number>(0)
   const [updatingMaxEmails, setUpdatingMaxEmails] = useState(false)
 
   // 定义API响应类型
@@ -268,47 +268,6 @@ export function PromotePanel() {
     }
   }
 
-  // 更新用户邮箱数量限制
-  const handleUpdateMaxEmails = async () => {
-    if (!foundUser) return
-
-    setUpdatingMaxEmails(true)
-    try {
-      const res = await fetch(`/api/roles/users/${foundUser.id}/max-emails`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ maxEmails: newMaxEmails })
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "更新失败")
-      }
-
-      toast({
-        title: "更新成功",
-        description: data.message || "邮箱数量限制已更新",
-      })
-
-      // 更新本地状态
-      setFoundUser({
-        ...foundUser,
-        maxEmails: newMaxEmails
-      })
-
-      setEditingMaxEmails(false)
-    } catch (error) {
-      toast({
-        title: "更新失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
-        variant: "destructive"
-      })
-    } finally {
-      setUpdatingMaxEmails(false)
-    }
-  }
-
   const renderUserInfo = () => {
     if (!foundUser) return null
 
@@ -377,7 +336,7 @@ export function PromotePanel() {
                     className="h-6 w-6 p-0"
                     onClick={() => {
                       setEditingMaxEmails(false)
-                      setNewMaxEmails(foundUser.maxEmails || 30)
+                      setNewMaxEmails(foundUser.maxEmails ?? 0)
                     }}
                   >
                     <X className="w-3 h-3" />

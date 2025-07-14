@@ -2,7 +2,6 @@
 
 import { create } from "zustand"
 import { Role, ROLES } from "@/lib/permissions"
-import { EMAIL_CONFIG } from "@/config"
 import { useEffect } from "react"
 
 interface Config {
@@ -10,7 +9,6 @@ interface Config {
   emailDomains: string
   emailDomainsArray: string[]
   adminContact: string
-  maxEmails: number
 }
 
 interface ConfigStore {
@@ -35,8 +33,7 @@ const useConfigStore = create<ConfigStore>((set) => ({
           defaultRole: data.defaultRole || ROLES.CIVILIAN,
           emailDomains: data.emailDomains,
           emailDomainsArray: data.emailDomains.split(','),
-          adminContact: data.adminContact || "",
-          maxEmails: Number(data.maxEmails) || EMAIL_CONFIG.MAX_ACTIVE_EMAILS
+          adminContact: data.adminContact || ""
         },
         loading: false
       })

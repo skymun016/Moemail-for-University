@@ -16,9 +16,11 @@ import { useConfig } from "@/hooks/use-config"
 
 interface CreateDialogProps {
   onEmailCreated: () => void
+  maxEmails: number
+  total: number
 }
 
-export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
+export function CreateDialog({ onEmailCreated, maxEmails, total }: CreateDialogProps) {
   const { config } = useConfig()  
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -90,10 +92,16 @@ export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
     }
   }, [config])
 
+  const canCreateEmail = maxEmails > 0 && total < maxEmails
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button
+          className="gap-2"
+          disabled={!canCreateEmail}
+          title={!canCreateEmail ? (maxEmails === 0 ? "您没有创建邮箱的权限" : "已达到邮箱数量限制") : ""}
+        >
           <Plus className="w-4 h-4" />
           创建新邮箱
         </Button>
