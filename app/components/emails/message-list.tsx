@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react"
 import {Mail, Calendar, RefreshCw, Trash2, Search, Send, Trash, Inbox, SendHorizontal} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -94,7 +94,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
     setFilteredMessages(filtered)
   }, [searchQuery, typeFilteredMessages, messageType])
 
-  const fetchMessages = async (cursor?: string) => {
+  const fetchMessages = useCallback(async (cursor?: string) => {
     try {
       const url = new URL(`/api/emails/${email.id}`, window.location.origin)
       if (cursor) {
@@ -102,7 +102,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
       }
       const response = await fetch(url)
       const data = await response.json() as MessageResponse
-      
+
       if (!cursor) {
         const newMessages = data.messages
         const oldMessages = messagesRef.current
@@ -132,7 +132,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
       setRefreshing(false)
       setLoadingMore(false)
     }
-  }
+  }, [email.id])
 
   const startPolling = () => {
     stopPolling()
@@ -150,10 +150,10 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(function
     }
   }
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true)
     await fetchMessages()
-  }
+  }, [fetchMessages])
 
   // 暴露方法给父组件
   useImperativeHandle(ref, () => ({

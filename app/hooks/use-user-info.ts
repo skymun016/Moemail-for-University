@@ -1,7 +1,7 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { EMAIL_CONFIG } from "@/config"
 
 interface UserInfo {
@@ -19,18 +19,18 @@ export function useUserInfo() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchUserInfo = async () => {
+  const fetchUserInfo = useCallback(async () => {
     if (!session?.user?.id) return
 
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch(`/api/users/me`)
       if (!response.ok) {
         throw new Error("获取用户信息失败")
       }
-      
+
       const data = await response.json()
       setUserInfo(data)
     } catch (err) {
@@ -38,13 +38,13 @@ export function useUserInfo() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.user?.id])
 
   useEffect(() => {
     if (session?.user?.id) {
       fetchUserInfo()
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, fetchUserInfo])
 
   return {
     userInfo,

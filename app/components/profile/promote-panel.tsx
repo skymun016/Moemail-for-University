@@ -239,7 +239,7 @@ export function PromotePanel() {
         body: JSON.stringify({ maxEmails: newMaxEmails })
       })
 
-      const data = await res.json()
+      const data = await res.json() as { error?: string; message?: string }
 
       if (!res.ok) {
         throw new Error(data.error || "更新失败")
