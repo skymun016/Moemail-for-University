@@ -31,7 +31,7 @@ export function useUserInfo() {
         throw new Error("获取用户信息失败")
       }
 
-      const data = await response.json()
+      const data = await response.json() as UserInfo
       setUserInfo(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "获取用户信息失败")
