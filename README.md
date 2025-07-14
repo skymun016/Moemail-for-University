@@ -25,6 +25,8 @@
   ![image](https://github.com/user-attachments/assets/570e49d5-dc79-4947-b21e-2b764b415d4c)
 - **禁用邮箱删除功能**：用户无法自主删除已经注册的邮箱
 - **默认邮箱时限**：目前只能创建永久时限的邮箱，可以替换[beilunyang/moemail](https://github.com/beilunyang/moemail)中的app/types/email.ts文件恢复
+- **管理单个成员邮箱数量**:<img width="650" height="145" alt="{BD76F2DB-B0E6-4E0F-9236-F6BD7F0B0C49}" src="https://github.com/user-attachments/assets/1d7f20ee-cf1b-4f1b-b510-f49c7d245de2" />
+
 #### 用户端
 - **邮件查询**：可以在邮件列表中输入关键词（发件人、邮件内容、邮件主题）自动检索对应的邮件
   ![image](https://github.com/user-attachments/assets/7ead0f40-9aaa-456b-943e-bf9fbd637c05)
@@ -38,6 +40,7 @@
 - [x] 接入SMTP Server新增发件功能
 - [x] 增加发件记录
 - [x] 增加收件回复
+- [x] 管理员可单独设置成员创建邮箱数量 
 - [ ] 接入Linux Do Connect
 - [ ] 更多的功能For Admin+Users
 
