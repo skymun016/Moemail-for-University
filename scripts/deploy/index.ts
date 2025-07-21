@@ -196,35 +196,24 @@ const checkAndCreateDatabase = async () => {
 };
 
 /**
- * 迁移数据库 - 使用安全迁移脚本
+ * 迁移数据库 - 使用部署专用迁移脚本
  */
 const migrateDatabase = () => {
-  console.log("📝 Migrating remote database (safe mode)...");
+  console.log("📝 Checking database migrations for deployment...");
   try {
-    // Use the safe migration script that handles existing databases better
-    execSync("pnpm run db:migrate-safe", { stdio: "inherit" });
-    console.log("✅ Database migration completed successfully");
+    // Use the deployment-specific migration script that handles "no changes" gracefully
+    execSync("pnpm run db:migrate-deploy", { stdio: "inherit" });
+    console.log("✅ Database migration check completed successfully");
   } catch (error: any) {
     console.error("❌ Database migration failed:", error);
 
-    // Check if this might be a "database already up to date" scenario
-    const errorMessage = error.message || error.toString();
-    if (errorMessage.includes('No migrations to apply') ||
-        errorMessage.includes('already applied') ||
-        errorMessage.includes('up to date') ||
-        errorMessage.includes('No new migrations')) {
-      console.log("ℹ️ Database appears to be up to date, continuing deployment...");
-      return; // Don't throw error, continue deployment
-    }
-
-    // For other errors, we should still fail the deployment
-    console.error("💡 Possible solutions:");
-    console.error("  1. Database may already have data and migrations applied");
-    console.error("  2. Verify CLOUDFLARE_API_TOKEN has D1 database permissions");
-    console.error("  3. Verify CLOUDFLARE_ACCOUNT_ID is correct");
-    console.error("  4. Check if database exists and is accessible");
-    console.error("  5. Try running 'pnpm run db:debug' locally to diagnose");
-    console.error("  6. Try running 'pnpm run db:status' to check migration status");
+    // The new script should handle most cases gracefully, but if it still fails,
+    // it's likely a real issue that should stop deployment
+    console.error("💡 Migration failed - this indicates a real issue:");
+    console.error("  1. Check CLOUDFLARE_API_TOKEN has D1 database permissions");
+    console.error("  2. Verify CLOUDFLARE_ACCOUNT_ID is correct");
+    console.error("  3. Ensure database exists and is accessible");
+    console.error("  4. Check for authentication or network issues");
 
     throw error;
   }

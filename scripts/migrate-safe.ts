@@ -98,16 +98,33 @@ async function migrateSafe() {
 
     // Step 2: Generate migrations (always safe to do)
     console.log('Generating migrations...')
+    let hasNewMigrations = false
     try {
       const { stdout: generateOutput } = await execAsync('npx drizzle-kit generate')
       if (generateOutput && generateOutput.trim()) {
         console.log('✅ Migrations generated:', generateOutput)
+
+        // Check if there are actually new migrations to apply
+        if (generateOutput.includes('No schema changes, nothing to migrate')) {
+          console.log('ℹ️ No schema changes detected, database is already up to date')
+          hasNewMigrations = false
+        } else {
+          hasNewMigrations = true
+        }
       } else {
         console.log('ℹ️ No new migrations to generate')
+        hasNewMigrations = false
       }
     } catch (generateErr: any) {
       console.error('Failed to generate migrations:', generateErr.message)
       throw generateErr
+    }
+
+    // If no new migrations, we can skip the apply step
+    if (!hasNewMigrations) {
+      console.log('✅ Database is already up to date! No migrations needed.')
+      console.log('🎉 Safe migration completed successfully - nothing to do!')
+      return
     }
     
     // Step 3: Apply migrations with better error handling

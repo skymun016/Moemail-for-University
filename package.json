@@ -11,6 +11,7 @@
     "db:migrate-local": "tsx scripts/migrate.ts local",
     "db:migrate-remote": "tsx scripts/migrate.ts remote",
     "db:migrate-safe": "tsx scripts/migrate-safe.ts remote",
+    "db:migrate-deploy": "tsx scripts/migrate-deploy.ts",
     "db:debug": "tsx scripts/debug-migrate.ts",
     "db:status": "npx wrangler d1 migrations list moemail-db --remote",
     "webhook-test-server": "bun run scripts/webhook-test-server.ts",

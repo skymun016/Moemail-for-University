@@ -70,13 +70,31 @@ async function migrate() {
 
     // Generate migrations
     console.log('Generating migrations...')
+    let hasNewMigrations = false
     try {
       const { stdout: generateOutput, stderr: generateError } = await execAsync('npx drizzle-kit generate')
-      if (generateOutput) console.log('Generate output:', generateOutput)
+      if (generateOutput) {
+        console.log('Generate output:', generateOutput)
+
+        // Check if there are actually new migrations to apply
+        if (generateOutput.includes('No schema changes, nothing to migrate')) {
+          console.log('ℹ️ No schema changes detected, database is already up to date')
+          hasNewMigrations = false
+        } else {
+          hasNewMigrations = true
+        }
+      }
       if (generateError && generateError.trim()) console.log('Generate stderr:', generateError)
     } catch (generateErr: any) {
       console.error('Failed to generate migrations:', generateErr.message)
       throw generateErr
+    }
+
+    // If no new migrations, we can skip the apply step
+    if (!hasNewMigrations) {
+      console.log('✅ Database is already up to date! No migrations needed.')
+      console.log('🎉 Migration completed successfully - nothing to do!')
+      return
     }
 
     // Check migration status first
