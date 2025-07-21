@@ -19,6 +19,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Cloudflare Pages configuration
+  experimental: {
+    runtime: 'edge',
+  },
+  // Ensure proper asset handling for Cloudflare Pages
+  assetPrefix: undefined,
+  trailingSlash: false,
 };
 
 export default withPWA({

@@ -348,13 +348,35 @@ const pushPagesSecret = () => {
 const deployPages = () => {
   console.log("🚧 Deploying to Cloudflare Pages...");
   try {
+    // Clean up any previous build artifacts
+    console.log("🧹 Cleaning up previous build artifacts...");
+    try {
+      execSync("rm -rf .next .vercel", { stdio: "inherit" });
+    } catch (cleanupError) {
+      console.log("ℹ️ No previous build artifacts to clean");
+    }
+
+    // Run the deployment
     execSync("pnpm run deploy:pages", { stdio: "inherit" });
     console.log("✅ Pages deployment completed successfully");
   } catch (error: any) {
     console.error("❌ Pages deployment failed:", error);
 
-    // Check if this is an authentication error
     const errorMessage = error.message || error.toString();
+
+    // Check for build errors
+    if (errorMessage.includes('Could not resolve import') ||
+        errorMessage.includes('__next-on-pages-dist__')) {
+      console.error('\n🔧 Build Error Detected!');
+      console.error('This appears to be a Next.js + Cloudflare Pages compatibility issue.');
+      console.error('\n💡 Possible solutions:');
+      console.error('  1. Update @cloudflare/next-on-pages to the latest version');
+      console.error('  2. Check Next.js version compatibility');
+      console.error('  3. Review next.config.ts configuration');
+      console.error('  4. Try clearing build cache: rm -rf .next .vercel');
+    }
+
+    // Check if this is an authentication error
     if (errorMessage.includes('Unable to authenticate') ||
         errorMessage.includes('authentication') ||
         errorMessage.includes('code: 10001')) {
