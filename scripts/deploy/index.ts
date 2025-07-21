@@ -320,7 +320,7 @@ const pushPagesSecret = () => {
     writeFileSync(runtimeEnvFile, runtimeEnvContent);
     
     // 使用临时文件推送secrets
-    execSync(`pnpm dlx wrangler pages secret bulk ${runtimeEnvFile}`, { stdio: "inherit" });
+    execSync(`npx wrangler pages secret bulk ${runtimeEnvFile}`, { stdio: "inherit" });
     
     // 清理临时文件
     execSync(`rm ${runtimeEnvFile}`, { stdio: "inherit" });
@@ -352,7 +352,7 @@ const deployPages = () => {
 const deployEmailWorker = () => {
   console.log("🚧 Deploying Email Worker...");
   try {
-    execSync("pnpm dlx wrangler deploy --config wrangler.email.json", { stdio: "inherit" });
+    execSync("npx wrangler deploy --config wrangler.email.json", { stdio: "inherit" });
     console.log("✅ Email Worker deployed successfully");
   } catch (error) {
     console.error("❌ Email Worker deployment failed:", error);
@@ -366,7 +366,7 @@ const deployEmailWorker = () => {
 const deployCleanupWorker = () => {
   console.log("🚧 Deploying Cleanup Worker...");
   try {
-    execSync("pnpm dlx wrangler deploy --config wrangler.cleanup.json", { stdio: "inherit" });
+    execSync("npx wrangler deploy --config wrangler.cleanup.json", { stdio: "inherit" });
     console.log("✅ Cleanup Worker deployed successfully");
   } catch (error) {
     console.error("❌ Cleanup Worker deployment failed:", error);
