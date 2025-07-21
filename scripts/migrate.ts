@@ -79,6 +79,21 @@ async function migrate() {
       throw generateErr
     }
 
+    // Check migration status first
+    if (mode === 'remote') {
+      console.log('Checking current migration status...')
+      try {
+        const statusCommand = `npx wrangler d1 migrations list ${dbName} --remote`
+        const { stdout: statusOutput } = await execAsync(statusCommand, {
+          env: process.env,
+          timeout: 30000
+        })
+        console.log('Current migrations:', statusOutput || 'No migrations found')
+      } catch (statusErr: any) {
+        console.log('Could not check migration status (this is normal for new databases):', statusErr.message)
+      }
+    }
+
     // Applying migrations
     console.log(`Applying migrations to ${mode} database: ${dbName}`)
 
@@ -111,6 +126,26 @@ async function migrate() {
       console.error('- Stdout:', migrateErr.stdout || 'No stdout')
       console.error('- Stderr:', migrateErr.stderr || 'No stderr')
       console.error('- Error message:', migrateErr.message)
+
+      // Check if this is a "no migrations to apply" scenario
+      const output = (migrateErr.stdout || '') + (migrateErr.stderr || '')
+      if (output.includes('No migrations to apply') ||
+          output.includes('already applied') ||
+          output.includes('up to date')) {
+        console.log('✅ Database is already up to date, no migrations needed')
+        return // Don't throw error, this is actually success
+      }
+
+      // Check if this is a permissions or authentication issue
+      if (output.includes('authentication') ||
+          output.includes('unauthorized') ||
+          output.includes('permission')) {
+        console.error('❌ Authentication/Permission error. Please check:')
+        console.error('  - CLOUDFLARE_API_TOKEN is valid and has D1 permissions')
+        console.error('  - CLOUDFLARE_ACCOUNT_ID is correct')
+        console.error('  - Database exists and is accessible')
+      }
+
       throw migrateErr
     }
 
