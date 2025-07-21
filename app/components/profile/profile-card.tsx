@@ -4,7 +4,7 @@ import { User } from "next-auth"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
-import { Github, Mail, Settings, Crown, Sword, User2, Gem } from "lucide-react"
+import { Github, Mail, Settings, Crown, Sword, User2, Gem, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { WebhookConfig } from "./webhook-config"
 import { PromotePanel } from "./promote-panel"
@@ -101,15 +101,25 @@ export function ProfileCard({ user }: ProfileCardProps) {
       {canManageWebhook && <ApiKeyPanel />}
 
       <div className="flex flex-col sm:flex-row gap-4 px-1">
-        <Button 
+        <Button
           onClick={() => router.push("/moe")}
           className="gap-2 flex-1"
         >
           <Mail className="w-4 h-4" />
           返回邮箱
         </Button>
-        <Button 
-          variant="outline" 
+        {canPromote && (
+          <Button
+            onClick={() => router.push("/admin/users")}
+            className="gap-2 flex-1"
+            variant="secondary"
+          >
+            <Users className="w-4 h-4" />
+            用户管理
+          </Button>
+        )}
+        <Button
+          variant="outline"
           onClick={() => signOut({ callbackUrl: "/" })}
           className="flex-1"
         >
