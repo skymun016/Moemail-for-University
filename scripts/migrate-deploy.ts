@@ -92,7 +92,6 @@ async function migrateForDeployment() {
       console.log(`Executing: ${command}`)
       
       const { stdout: migrateOutput, stderr: migrateError } = await execAsync(command, {
-        env: process.env,
         timeout: 120000 // 2 minutes
       })
       

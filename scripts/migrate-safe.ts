@@ -77,7 +77,6 @@ async function migrateSafe() {
       console.log('Checking existing migrations...')
       try {
         const { stdout: existingMigrations } = await execAsync(`npx wrangler d1 migrations list ${dbName} --remote`, {
-          env: process.env,
           timeout: 30000
         })
         
@@ -135,7 +134,6 @@ async function migrateSafe() {
     
     try {
       const { stdout: migrateOutput, stderr: migrateError } = await execAsync(command, {
-        env: process.env,
         timeout: 120000 // 2 minutes timeout for migrations
       })
       

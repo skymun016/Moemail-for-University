@@ -103,7 +103,6 @@ async function migrate() {
       try {
         const statusCommand = `npx wrangler d1 migrations list ${dbName} --remote`
         const { stdout: statusOutput } = await execAsync(statusCommand, {
-          env: process.env,
           timeout: 30000
         })
         console.log('Current migrations:', statusOutput || 'No migrations found')
@@ -127,7 +126,6 @@ async function migrate() {
 
     try {
       const { stdout: migrateOutput, stderr: migrateError } = await execAsync(command, {
-        env: process.env,
         timeout: 60000 // 60 seconds timeout
       })
 
