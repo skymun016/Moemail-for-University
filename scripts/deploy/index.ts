@@ -350,8 +350,28 @@ const deployPages = () => {
   try {
     execSync("pnpm run deploy:pages", { stdio: "inherit" });
     console.log("✅ Pages deployment completed successfully");
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Pages deployment failed:", error);
+
+    // Check if this is an authentication error
+    const errorMessage = error.message || error.toString();
+    if (errorMessage.includes('Unable to authenticate') ||
+        errorMessage.includes('authentication') ||
+        errorMessage.includes('code: 10001')) {
+      console.error('\n🔐 Authentication Error Detected!');
+      console.error('This is likely due to invalid or insufficient API token permissions.');
+      console.error('\n💡 To diagnose the issue:');
+      console.error('  1. Run: pnpm run cf:debug');
+      console.error('  2. Check your GitHub repository secrets:');
+      console.error('     - CLOUDFLARE_API_TOKEN');
+      console.error('     - CLOUDFLARE_ACCOUNT_ID');
+      console.error('  3. Ensure your API token has these permissions:');
+      console.error('     - Cloudflare Pages:Edit');
+      console.error('     - D1:Edit');
+      console.error('     - Account:Read');
+      console.error('  4. Generate a new token at: https://dash.cloudflare.com/profile/api-tokens');
+    }
+
     throw error;
   }
 };

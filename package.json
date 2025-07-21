@@ -14,6 +14,7 @@
     "db:migrate-deploy": "tsx scripts/migrate-deploy.ts",
     "db:debug": "tsx scripts/debug-migrate.ts",
     "db:status": "npx wrangler d1 migrations list moemail-db --remote",
+    "cf:debug": "tsx scripts/debug-cloudflare.ts",
     "webhook-test-server": "bun run scripts/webhook-test-server.ts",
     "generate-test-data": "npx wrangler dev scripts/generate-test-data.ts",
     "dev:cleanup": "npx wrangler dev --config wrangler.cleanup.json --test-scheduled",
