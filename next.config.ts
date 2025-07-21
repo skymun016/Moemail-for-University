@@ -21,7 +21,8 @@ const nextConfig: NextConfig = {
   },
   // Cloudflare Pages configuration
   experimental: {
-    runtime: 'edge',
+    // Enable experimental features for better Cloudflare compatibility
+    serverComponentsExternalPackages: ['@cloudflare/next-on-pages'],
   },
   // Ensure proper asset handling for Cloudflare Pages
   assetPrefix: undefined,
