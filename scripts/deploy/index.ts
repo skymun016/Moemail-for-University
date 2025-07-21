@@ -196,24 +196,39 @@ const checkAndCreateDatabase = async () => {
 };
 
 /**
- * 迁移数据库 - 使用部署专用迁移脚本
+ * 智能数据库部署 - 检测数据库状态并智能处理
  */
 const migrateDatabase = () => {
-  console.log("📝 Checking database migrations for deployment...");
+  console.log("🧠 Smart database deployment...");
   try {
-    // Use the deployment-specific migration script that handles "no changes" gracefully
-    execSync("pnpm run db:migrate-deploy", { stdio: "inherit" });
-    console.log("✅ Database migration check completed successfully");
+    // Use the smart deployment script that detects database state
+    execSync("pnpm run db:smart-deploy", { stdio: "inherit" });
+    console.log("✅ Smart database deployment completed successfully");
   } catch (error: any) {
-    console.error("❌ Database migration failed:", error);
+    console.error("❌ Smart database deployment failed:", error);
 
-    // The new script should handle most cases gracefully, but if it still fails,
-    // it's likely a real issue that should stop deployment
-    console.error("💡 Migration failed - this indicates a real issue:");
-    console.error("  1. Check CLOUDFLARE_API_TOKEN has D1 database permissions");
-    console.error("  2. Verify CLOUDFLARE_ACCOUNT_ID is correct");
-    console.error("  3. Ensure database exists and is accessible");
-    console.error("  4. Check for authentication or network issues");
+    const errorMessage = error.message || error.toString();
+
+    // Check for specific error types
+    if (errorMessage.includes('no such table')) {
+      console.error('\n📋 Database Table Missing Error!');
+      console.error('The database exists but tables are missing or incomplete.');
+      console.error('\n💡 This deployment will attempt to:');
+      console.error('  1. Detect missing tables automatically');
+      console.error('  2. Import database schema if available');
+      console.error('  3. Run migrations as fallback');
+      console.error('\n🔧 Manual fix options:');
+      console.error('  - Place a database-schema.sql file in project root');
+      console.error('  - Or provide a complete database backup');
+    } else if (errorMessage.includes('authentication')) {
+      console.error('\n🔐 Authentication Error!');
+      console.error('Check CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID');
+    } else {
+      console.error('\n💡 General database deployment failure:');
+      console.error('  1. Check database exists and is accessible');
+      console.error('  2. Verify API token permissions');
+      console.error('  3. Check network connectivity');
+    }
 
     throw error;
   }
