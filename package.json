@@ -10,6 +10,7 @@
     "build:pages": "npx @cloudflare/next-on-pages",
     "db:migrate-local": "tsx scripts/migrate.ts local",
     "db:migrate-remote": "tsx scripts/migrate.ts remote",
+    "db:debug": "tsx scripts/debug-migrate.ts",
     "webhook-test-server": "bun run scripts/webhook-test-server.ts",
     "generate-test-data": "npx wrangler dev scripts/generate-test-data.ts",
     "dev:cleanup": "npx wrangler dev --config wrangler.cleanup.json --test-scheduled",
